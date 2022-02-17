@@ -1,0 +1,11 @@
+python-dotenv~=0.19.2
+discord.py
+dislash.py
+humanize~=4.0.0
+jishaku
+dblpy
+motor~=2.5.1
+umongo
+discordspy
+pymongo[srv]
+aiohttp~=3.7.4.post0

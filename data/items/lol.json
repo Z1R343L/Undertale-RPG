@@ -1,0 +1,52 @@
+{
+    "bandage" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "cloudy glasses" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "cowboy hat" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "faded ribbon" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "heart locket" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "manly bandanna" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "old tutu" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "stained arpon" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "temmie armor" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    },
+    "the locket" : {
+        "DF" : 0,
+        "PRICE" : 0,
+        "func" : "armor"
+    }
+}
