@@ -26,7 +26,7 @@ async def is_enabled(ctx):
         return False
     return True
 
-# intiating the bot
+
 class UndertaleBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -53,12 +53,10 @@ class UndertaleBot(commands.AutoShardedBot):
         self.cmd_list = ["fboss", "bossfight", "boss"]
 
     async def on_shard_connect(self, shard):
-        print(f"{shard} is connected.")
-
-    async def on_ready(self):
-        print("Bot is ready")
-        await self.db_load()
-        await self.load_all_cogs()
+        print(f"{bcolors.GREEN} shard id:{shard} is connected.")
+        if shard == 0:
+            await self.db_load()
+            await self.load_all_cogs()
 
     async def load_all_cogs(self):
         for filename in os.listdir("./cogs"):
@@ -85,11 +83,11 @@ class UndertaleBot(commands.AutoShardedBot):
     #    return self.get_cog("Mongo")
 
 
-async def determine_prefix(bot, message):
+async def determine_prefix(UT, message):
     if bot.ENABLED is False:
         return "u?"
     if message.guild:
-        data = await _create_guild_info(bot, message.guild)
+        data = await _create_guild_info(UT, message.guild)
         return data["prefix"]
     return "u?"
 
