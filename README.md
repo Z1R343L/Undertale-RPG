@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.8-blue?style=for-the-badge)
 ![License](https://img.shields.io/github/license/theblobscp/undertale-rpg?style=for-the-badge)
 
-[![Bots for Discord](https://discords.com/bots/api/bot/815153881217892372/widget)](https://discords.com/bots/bots/815153881217892372)  [![Discord Bots](https://top.gg/api/widget/815153881217892372.svg)](https://top.gg/bot/815153881217892372)   
+[![Discord Bots](https://top.gg/api/widget/815153881217892372.svg)](https://top.gg/bot/815153881217892372)   
 
 
 An Undertale RPG Discord bot to fight monsters, bosses, level up and duel with other players!.
