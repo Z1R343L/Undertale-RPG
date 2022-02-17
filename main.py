@@ -26,7 +26,7 @@ async def is_enabled(ctx):
         return False
     return True
 
-
+# intiating the bot
 class UndertaleBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
