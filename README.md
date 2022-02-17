@@ -17,13 +17,13 @@ the stronger you get, the easier the game be.
 
 there is a prestige system (resets), you can travel to other timelines for stronger monsters!.
 
-defualt prefix is **u?**
+default prefix is **u?**
 
 # Contributing
 
-you can make an PR, and wait until a respond, be sure to provide full explanation and tested your changes!.
+you can make an PR, and wait until a response, be sure to provide full explanation and tested your changes!.
 
-the bot is a bit unstable, but i would like some help.
+the bot is a bit unstable, but I would like some help.
 
 # Features
 
@@ -41,7 +41,7 @@ the bot is a bit unstable, but i would like some help.
  
     - Dueling other players, No rewards from it and does not affect your progress, juts to train and fun.
 
-## **Time lines**
+## **timelines**
     
     - Not Complete, only Undertale Dimension Exist so far, alot will come soon with future updates.
 
