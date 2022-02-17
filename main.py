@@ -53,7 +53,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.cmd_list = ["fboss", "bossfight", "boss"]
 
     async def on_shard_connect(self, shard):
-        print(f"{bcolors.GREEN} shard id:{shard} is connected.")
+        print(f"{bcolors.GREEN} shard id:{shard} is connected.{bcolors.ENDC}")
         if shard == 0:
             await self.db_load()
             await self.load_all_cogs()
@@ -62,7 +62,7 @@ class UndertaleBot(commands.AutoShardedBot):
         for filename in os.listdir("./cogs"):
             if filename.endswith(".py") and not filename.startswith("_"):
                 self.load_extension(f"cogs.{filename[:-3]}")
-                print(f"🔁 cogs.{filename[:-3]} is loaded and ready")
+                print(f"🔁 {bcolors.GREEN}{bcolors.BOLD}cogs.{filename[:-3]} is loaded and ready.{bcolors.ENDC}")
         self.ENABLED = True
         return
 

@@ -34,7 +34,7 @@ class Event(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
-        print(f"{bcolors.CYAN}{ctx.author} Used the command {bcolors.GREEN}{ctx.command}")
+        print(f"{bcolors.CYAN}{bcolors.BOLD}{ctx.author}{bcolors.ENDC} Used the command : {bcolors.BOLD}{bcolors.GREEN}{ctx.command} {bcolors.ENDC}")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
