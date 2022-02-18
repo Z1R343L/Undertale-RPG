@@ -108,7 +108,7 @@ class Fight(commands.Cog):
             return
 
         @on_click.matching_id("yes")
-        async def on_test_button():
+        async def on_test_button(inter):
             await msg.edit(components=[])
             on_click.kill()
 
@@ -256,7 +256,7 @@ class Menu:
             return await Mercy.spare(self, ctx, inter)
 
         @on_click.timeout
-        async def on_timeout():
+        async def on_timeout(inter):
             row.disable_buttons()
             embed.description = "You took too much to reply!"
             await msg.edit(embed=embed, components=[row])
