@@ -26,6 +26,7 @@ class Shop(commands.Cog):
 
     async def armor(self, ctx, item):
         data = await self.bot.players.find_one({"_id": ctx.author.id})
+        print(item)
         data["inventory"].remove(item)
         data["inventory"].append(data["armor"])
 
@@ -295,8 +296,10 @@ class Shop(commands.Cog):
             store = {}
             for data in data["inventory"]:
                 countoccurrences(store, data)
+
             for k, v in store.items():
                 inventory.append({f"{k}": f"{v}x"})
+
             for item in inventory:
                 for key in item:
                     lista.append(
@@ -324,7 +327,7 @@ class Shop(commands.Cog):
                 selected_item = inter.component.custom_id
                 await msg.edit(components=[])
                 ctx.command.reset_cooldown(ctx)
-                await getattr(Shop, self.bot.items[selected_item]["func"])(self, ctx, item)
+                await getattr(Shop, self.bot.items[selected_item]["func"])(self, ctx, selected_item)
 
             return
 

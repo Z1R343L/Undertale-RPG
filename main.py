@@ -53,7 +53,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.cmd_list = ["fboss", "bossfight", "boss"]
 
     async def on_shard_connect(self, shard):
-        print(f"{bcolors.GREEN} shard id:{shard} is connected.{bcolors.ENDC}")
+        print(f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN} is connected.{bcolors.ENDC}")
         if shard == 0:
             await self.db_load()
             await self.load_all_cogs()
