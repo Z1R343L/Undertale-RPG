@@ -173,9 +173,14 @@ class Shop(commands.Cog):
             lista = []
             for item in items_list:
                 price = self.bot.items[item]["price"]
-                lista.append(
-                    Button(label=f"{item.title()} | {price} G", custom_id=item, style=ButtonStyle.grey)
-                )
+                if price > data["gold"]:
+                    lista.append(
+                        Button(label=f"{item.title()} | {price} G", custom_id=item, style=ButtonStyle.red, disabled=True)
+                    )
+                else:
+                    lista.append(
+                        Button(label=f"{item.title()} | {price} G", custom_id=item, style=ButtonStyle.grey)
+                    )
             lista.append(
                 Button(label="⛔", custom_id="shut", style=ButtonStyle.red))
 
