@@ -1,5 +1,5 @@
 import datetime
-import imp
+import importlib
 import sys
 import traceback
 
@@ -8,7 +8,7 @@ from discord.ext import commands, tasks
 import botTools.loader as loader
 from botTools.mHelper import bcolors
 
-imp.reload(loader)
+importlib.reload(loader)
 
 
 class Event(commands.Cog):
@@ -35,6 +35,10 @@ class Event(commands.Cog):
     @commands.Cog.listener()
     async def on_command(self, ctx):
         print(f"{bcolors.CYAN}{bcolors.BOLD}{ctx.author}{bcolors.ENDC} Used the command : {bcolors.BOLD}{bcolors.GREEN}{ctx.command} {bcolors.ENDC}")
+
+    @commands.Cog.listener()
+    async def on_shard_resumed(self, shard_id):
+        print(f"{bcolors.GREEN} Shard {shard_id} Has resumed{bcolors.ENDC}")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):

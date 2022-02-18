@@ -31,10 +31,8 @@ class Fight(commands.Cog):
             curr_time = time.time()
             delta = float(curr_time) - float(data["rest_block"])
 
-            if delta <= 1800.0 and delta > 0:
+            if 1800.0 >= delta > 0:
                 seconds = 1800 - delta
-                m, s = divmod(seconds, 60)
-                h, m = divmod(m, 60)
                 em = discord.Embed(
                     description=f"**You can't fight a boss yet!**\n\n**You can fight a boss <t:{int(time.time()) + int(seconds)}:R>**",
                     color=discord.Color.red(),
@@ -49,27 +47,26 @@ class Fight(commands.Cog):
             return
 
         location = data["location"]
-        rand_monst = []
-        info = None
+        random_monster = []
 
         for i in ctx.bot.monsters:
             if ctx.bot.monsters[i]["location"] == location:
                 if ctx.bot.monsters[i]["boss"] and ctx.invoked_with in cmd_list:
-                    rand_monst.append(i)
+                    random_monster.append(i)
                 elif (
                         ctx.bot.monsters[i]["boss"] is False
                         and ctx.invoked_with not in cmd_list
                 ):
-                    rand_monst.append(i)
+                    random_monster.append(i)
                 else:
                     pass
 
         info = ctx.bot.monsters
 
-        if len(rand_monst) == 0:
+        if len(random_monster) == 0:
             await ctx.send(f"There are no monsters here?, Are you in an only boss area?, {ctx.prefix}boss")
             return
-        monster = random.choice(rand_monst)
+        monster = random.choice(random_monster)
         row = ActionRow(
             Button(style=ButtonStyle.green, label="Yes", custom_id="yes"),
             Button(style=ButtonStyle.red, label="No", custom_id="no"),
@@ -78,7 +75,7 @@ class Fight(commands.Cog):
         mon_hp_min = info[monster]["min_hp"]
         mon_hp_max = info[monster]["max_hp"]
         damage = info[monster]["atk"]
-        # image = einfo[elocation]["enemies"][monster]["image"]
+        # image = info[elocation]["enemies"][monster]["image"]
         # embed.set_thumbnail(url=image)
         enemy_hp = random.randint(mon_hp_min, mon_hp_max)
 
@@ -102,17 +99,16 @@ class Fight(commands.Cog):
 
         @on_click.matching_id("no")
         async def on_test_button(inter, reset_timeout=False):
-            embed.description += "\n\n**You Flee'd**"
+            embed.description += "\n\n**You Fled**"
             ctx.command.reset_cooldown(ctx)
-            new = []
             row.disable_buttons()
             await msg.edit(components=[row])
-            await inter.reply("You fleed", ephemeral=True)
+            await inter.reply("You fled", ephemeral=True)
             on_click.kill()
             return
 
         @on_click.matching_id("yes")
-        async def on_test_button(inter, reset_timeout=False):
+        async def on_test_button():
             await msg.edit(components=[])
             on_click.kill()
 
@@ -141,7 +137,6 @@ def setup(bot):
 class Core:
     async def get_bar(health, max_health):
         bar0 = "<:0_:899376245496758343>"
-        bar1 = "<:1_:899376320079855656>"
         bar2 = "<:2_:899376429568000040>"
         bar3 = "<:3_:899376559700451379>"
         bar4 = "<:4_:899376608220172339>"
@@ -151,33 +146,33 @@ class Core:
         per = mix * 100
         if per == 0:
             bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 10 and per > 0:
+        if 10 >= per > 0:
             bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 20 and per > 10:
+        if 20 >= per > 10:
             bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 30 and per > 20:
+        if 30 >= per > 20:
             bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
-        if per <= 40 and per > 30:
+        if 40 >= per > 30:
             bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
-        if per <= 50 and per > 40:
+        if 50 >= per > 40:
             bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
-        if per <= 60 and per > 50:
+        if 60 >= per > 50:
             bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
-        if per <= 70 and per > 60:
+        if 70 >= per > 60:
             bar = f"{bar5}{bar5}{bar5}{bar3}{bar0}"
-        if per <= 80 and per > 70:
+        if 80 >= per > 70:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
-        if per <= 90 and per > 80:
+        if 90 >= per > 80:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
-        if per <= 100 and per > 90:
+        if 100 >= per > 90:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
         return bar
 
     async def count(store, value):
         try:
-            store[value] = store[value] + 1
-        except KeyError as e:
-            store[value] = 1
+            store[str(value)] = store[value] + 1
+        except KeyError:
+            store[str(value)] = 1
             return
 
     async def _check_levelup(self, ctx):
@@ -218,7 +213,6 @@ class Core:
 
 class Menu:
     async def menu(self, ctx):
-        info = await ctx.bot.players.find_one({"_id": ctx.author.id})
         row = ActionRow(
             Button(style=ButtonStyle.red, label="Fight", custom_id="fight"),
             # Button(style=ButtonStyle.gray, label="Act", custom_id="act"),
@@ -276,25 +270,18 @@ class Menu:
 class Attack:
     async def attack(self, ctx, inter):
         event = ctx.bot.events
-        type_mon = None
         data = ctx.bot.monsters
         author = ctx.author
         info = await ctx.bot.players.find_one({"_id": author.id})
         user_wep = info["weapon"]
-        user_ar = info["armor"]
-        user_location = info["location"]
         monster = info["selected_monster"]
-        if monster == None:
+        if monster is None:
             monster = info["last_monster"]
-        lootbag = random.randint(1, 10)
         damage = info["damage"]
         enemy_hp = info["monster_hp"]
 
         min_dmg = ctx.bot.items[user_wep]["min_dmg"]
-        min_dfs = ctx.bot.items[user_ar]["min_dfs"]
         max_dmg = ctx.bot.items[user_wep]["max_dmg"]
-        max_dfs = ctx.bot.items[user_ar]["max_dfs"]
-        max_health = info["max_health"]
         enemy_min_gold = data[monster]["min_gold"]
         enemy_max_gold = data[monster]["max_gold"]
         enemy_xp_min = data[monster]["min_xp"]
@@ -303,7 +290,6 @@ class Attack:
         enemy_gold = random.randint(enemy_min_gold, enemy_max_gold)
         enemy_xp = random.randint(enemy_xp_min, enemy_xp_max)
         user_dmg = random.randint(min_dmg, max_dmg)
-        user_dfs = random.randint(min_dfs, max_dfs)
 
         dodge_chance = random.randint(1, 10)
 
@@ -385,15 +371,12 @@ class Attack:
 
     async def counter_attack(self, ctx):
         author = ctx.author
-        type_mon = None
         data = ctx.bot.monsters
 
         info = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        user_location = info["location"]
         enemy_define = info["selected_monster"]
-        if enemy_define == None:
+        if enemy_define is None:
             enemy_define = info["last_monster"]
-        enemy_define_hp = info["monster_hp"]
         enemy_dmg = data[enemy_define]["atk"]
         user_ar = info["armor"].lower()
         min_dfs = ctx.bot.items[user_ar]["min_dfs"]
@@ -425,7 +408,6 @@ class Attack:
         await ctx.send(ctx.author.mention, embed=atem)
 
         if user_hp_after <= 0:
-            user_hp_after = 0
             info["gold"] = info["gold"] - gold_lost
             info["gold"] = max(info["gold"], 0)
             info["deaths"] = info["deaths"] + 1
@@ -458,18 +440,23 @@ class Items:
         data["inventory"].append(data["weapon"])
         data["weapon"] = item
         await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-        await ctx.send(f"Succesfully equiped {item.title()}")
+        await ctx.send(f"Successfully equipped {item.title()}")
 
         return await Attack.counter_attack(self, ctx)
 
     async def armor(self, ctx, item):
+        selected_item = None
+        for i in item.keys:
+            selected_item = str(i)
+
+        print(selected_item)
         data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        data["inventory"].remove(item)
+        data["inventory"].remove(selected_item)
         data["inventory"].append(data["armor"])
 
-        data["armor"] = item
+        data["armor"] = selected_item
         await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-        await ctx.send(f"Succesfully equiped {item.title()}")
+        await ctx.send(f"Successfully equipped {item.title()}")
 
         return await Attack.counter_attack(self, ctx)
 
@@ -492,11 +479,11 @@ class Items:
         return await Attack.counter_attack(self, ctx)
 
     async def use(self, ctx, inter):
-        def countoccurrences(store, value):
+        def countoccurrences(stored, value):
             try:
-                store[value] = store[value] + 1
-            except KeyError as e:
-                store[value] = 1
+                stored[value] = stored[value] + 1
+            except KeyError:
+                stored[value] = 1
                 return
 
         await loader.create_player_info(ctx, ctx.author)
@@ -529,7 +516,7 @@ class Items:
                     Button(
                         label=f"{key.title()} {item[key]}",
                         custom_id=key.lower(),
-                        style=2,
+                        style=ButtonStyle.grey,
                     )
                 )
 
@@ -541,16 +528,16 @@ class Items:
         on_click = msg.create_click_listener(timeout=120)
 
         @on_click.not_from_user(ctx.author, cancel_others=True, reset_timeout=False)
-        async def on_wrong_user(inter):
-            await inter.reply("This is not yours kiddo!", ephemeral=True)
+        async def on_wrong_user(intr):
+            await intr.reply("This is not yours kiddo!", ephemeral=True)
 
         @on_click.from_user(ctx.author)
-        async def selected(inter):
+        async def selected(intr):
             on_click.kill()
-            item = inter.component.id
+            selected_item = intr.component.id
             await msg.edit(components=[])
             try:
-                await getattr(Items, ctx.bot.items[item]["func"])(self, ctx, item)
+                await getattr(Items, ctx.bot.items[selected_item]["func"])(self, ctx, selected_item)
             except KeyError:
                 await ctx.send("Nothing happened")
                 await asyncio.sleep(2)
@@ -595,23 +582,24 @@ class Mercy:
     async def spare(self, ctx, inter):
         info = await ctx.bot.players.find_one({"_id": ctx.author.id})
         monster = info["selected_monster"]
-        if monster == None:
+        if monster is None:
             monster = info["last_monster"]
-        if monster == "sans":
+
+        if monster is "sans":
             await ctx.send(
-                "Get dunked on!!, if were really freinds... **YOU WON'T COME BACK**"
+                "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
             )
             info["selected_monster"] = None
             info["fighting"] = False
             info["health"] = 10
             if str(ctx.invoked_with) == "fboss":
                 info["rest_block"] = time.time()
-            await bot.players.update_one({"_id": author.id}, {"$set": info})
-            return
+                await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": info})
+                return
 
         func = ["spared", "NotSpared", "spared"]
         monster = info["selected_monster"]
-        sprfunc = random.choice((func))
+        sprfunc = random.choice(func)
         embed1 = discord.Embed(
             title="Mercy", description=f"You tried to spare {monster}"
         )

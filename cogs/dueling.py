@@ -1,5 +1,5 @@
 import asyncio
-import imp
+import importlib
 import random
 
 import discord
@@ -8,7 +8,7 @@ from dislash import *
 
 import botTools.loader as loader
 
-imp.reload(loader)
+importlib.reload(loader)
 
 
 class Duel(commands.Cog):
@@ -99,21 +99,21 @@ class Core:
             bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
         if per <= 10 and per > 0:
             bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 20 and per > 10:
+        if 20 >= per > 10:
             bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 30 and per > 20:
+        if 30 >= per > 20:
             bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
-        if per <= 40 and per > 30:
+        if 40 >= per > 30:
             bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
-        if per <= 50 and per > 40:
+        if 50 >= per > 40:
             bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
-        if per <= 60 and per > 50:
+        if 60 >= per > 50:
             bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
-        if per <= 70 and per > 60:
+        if 70 >= per > 60:
             bar = f"{bar5}{bar5}{bar5}<:3_:877147741392871465>{bar0}"
-        if per <= 80 and per > 70:
+        if 80 >= per > 70:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
-        if per <= 90 and per > 80:
+        if 90 >= per > 80:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
         if per <= 100 and per > 90:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
@@ -121,7 +121,6 @@ class Core:
 
     async def get_bar(health, max_health):
         bar0 = "<:0_:876786251892654090>"
-        bar1 = "<:1_:876786270007869441>"
         bar2 = "<:2_:876786310931681361>"
         bar4 = "<:4_:876786361934413854>"
         bar5 = "<:5_:876786380888494120>"
@@ -130,13 +129,13 @@ class Core:
         per = mix * 100
         if per == 0:
             bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 10 and per > 0:
+        if 10 >= per > 0:
             bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 20 and per > 10:
+        if 20 >= per > 10:
             bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
         if per <= 30 and per > 20:
             bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
-        if per <= 40 and per > 30:
+        if 40 >= per > 30:
             bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
         if per <= 50 and per > 40:
             bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
@@ -290,12 +289,13 @@ class Items:
         data["inventory"].append(data["weapon"])
         data["weapon"] = item
         await ctx.bot.players.update_one({"_id": p1.id}, {"$set": data})
-        await ctx.send(f"Succesfully equiped {item.title()}")
+        await ctx.send(f"Successfully equiped {item.title()}")
         await asyncio.sleep(2)
         return await Menu.menu(self, ctx, p2, p1)  # replace
 
     async def armor(self, ctx, p1, p2, item):
         data = await ctx.bot.players.find_one({"_id": p1.id})
+        print(str(item))
         data["inventory"].remove(item)
         data["inventory"].append(data["armor"])
 

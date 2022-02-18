@@ -22,7 +22,7 @@ class Shop(commands.Cog):
             "inventory": data["inventory"]
         }
         await self.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-        return await ctx.send(f"Succesfully equiped {item.title()}")
+        return await ctx.send(f"Successfully equipped {item.title()}")
 
     async def armor(self, ctx, item):
         data = await self.bot.players.find_one({"_id": ctx.author.id})
@@ -34,7 +34,7 @@ class Shop(commands.Cog):
             "inventory": data["inventory"]
         }
         await self.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-        return await ctx.send(f"Succesfully equiped {item.title()}")
+        return await ctx.send(f"Successfully equipped {item.title()}")
 
     async def food(self, ctx, item):
         data = await self.bot.players.find_one({"_id": ctx.author.id})
@@ -83,11 +83,11 @@ class Shop(commands.Cog):
             ctx.command.reset_cooldown(ctx)
             return
 
-        def countoccurrences(store, value):
+        def countoccurrences(stored, value):
             try:
-                store[value] = store[value] + 1
-            except KeyError as e:
-                store[value] = 1
+                stored[value] = stored[value] + 1
+            except KeyError:
+                stored[value] = 1
                 return
 
         embed = discord.Embed(
@@ -111,7 +111,7 @@ class Shop(commands.Cog):
                     Button(
                         label=f"{key.title()} {item[key]} | {price / 2}",
                         custom_id=key,
-                        style=2,
+                        style=ButtonStyle.grey,
                     )
                 )
 
@@ -137,12 +137,12 @@ class Shop(commands.Cog):
 
             info["gold"] = info["gold"] + returned
 
-            data = {
+            output = {
                 "gold": info["gold"],
                 "inventory": info["inventory"]
             }
 
-            await self.bot.players.update_one({"_id": author.id}, {"$set": data})
+            await self.bot.players.update_one({"_id": author.id}, {"$set": output})
 
             ctx.command.reset_cooldown(ctx)
             await ctx.send(f"You sold {answer} for {round(returned, 1)} G")
@@ -174,7 +174,7 @@ class Shop(commands.Cog):
             for item in items_list:
                 price = self.bot.items[item]["price"]
                 lista.append(
-                    Button(label=f"{item.title()} | {price} G", custom_id=item, style=2)
+                    Button(label=f"{item.title()} | {price} G", custom_id=item, style=ButtonStyle.grey)
                 )
             lista.append(
                 Button(label="⛔", custom_id="shut", style=ButtonStyle.red))
@@ -191,10 +191,11 @@ class Shop(commands.Cog):
 
             @on_click.matching_id("shut")
             async def shutdown(inter):
-                for item in rows:
-                    item.disable_buttons()
+                for b in rows:
+                    b.disable_buttons()
                 await msg.edit(components=rows)
                 on_click.kill()
+                await inter.reply("Closed store", ephemeral=True)
                 return
 
             @on_click.from_user(ctx.author)
@@ -202,43 +203,43 @@ class Shop(commands.Cog):
                 if inter.component.custom_id == "shut":
                     return
 
-                data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-                gold = data["gold"]
+                incoming = await ctx.bot.players.find_one({"_id": ctx.author.id})
+                gold = incoming["gold"]
                 price = self.bot.items[inter.component.custom_id]["price"]
                 embed = discord.Embed(
                     title="Shop",
                     description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
                     color=discord.Colour.random(),
                 )
-                if data["gold"] < price:
+                if incoming["gold"] < price:
                     if "```diff\n- Your gold is not enough\n```" not in embed.description:
                         embed.description += "```diff\n- Your gold is not enough\n```"
                         await msg.edit(embed=embed)
                     return
-                if len(data["inventory"]) >= 10:
+                if len(incoming["inventory"]) >= 10:
                     if "```diff\n- Your carrying alot of items!\n```" not in embed.description:
                         embed.description += "```diff\n- Your carrying alot of items!\n```"
                     await msg.edit(embed=embed)
                     return
-                data["gold"] -= price
-                gold = data["gold"]
-                data["inventory"].append(inter.component.custom_id)
+                incoming["gold"] -= price
+                gold = incoming["gold"]
+                incoming["inventory"].append(inter.component.custom_id)
 
-                data = {
-                    "inventory": data["inventory"],
-                    "gold": data["gold"]
+                incoming = {
+                    "inventory": incoming["inventory"],
+                    "gold": incoming["gold"]
                 }
                 await self.bot.players.update_one(
-                    {"_id": ctx.author.id}, {"$set": data}
+                    {"_id": ctx.author.id}, {"$set": incoming}
                 )
-                embed = discord.Embed(
+                emb = discord.Embed(
                     title="Shop",
                     description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
                     color=discord.Colour.random(),
                 )
-                embed.description += f"```diff\n+ Succesfully bought {inter.component.custom_id}```"
-                await msg.edit(embed=embed)
-                await inter.reply(f"Succesfully bought **{inter.component.custom_id}**", ephemeral=True)
+                embed.description += f"```diff\n+ Successfully bought {inter.component.custom_id}```"
+                await msg.edit(embed=emb)
+                await inter.reply(f"Successfully bought **{inter.component.custom_id}**", ephemeral=True)
 
             return
         item = item.lower()
@@ -261,16 +262,16 @@ class Shop(commands.Cog):
 
         await self.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
         ctx.command.reset_cooldown(ctx)
-        await ctx.send(f"Succesfully bought {item}")
+        await ctx.send(f"Successfully bought {item}")
 
-    @commands.command(aliases=["consume", "heal"])
+    @commands.command(aliases=["consume", "heal", "equip"])
     @commands.cooldown(1, 6, commands.BucketType.user)
     async def use(self, ctx, *, item: str = None):
-        def countoccurrences(store, value):
+        def countoccurrences(stored, value):
             try:
-                store[value] = store[value] + 1
-            except KeyError as e:
-                store[value] = 1
+                stored[value] = stored[value] + 1
+            except KeyError:
+                stored[value] = 1
                 return
 
         await loader.create_player_info(ctx, ctx.author)
@@ -302,7 +303,7 @@ class Shop(commands.Cog):
                         Button(
                             label=f"{key.title()} {item[key]}",
                             custom_id=key.lower(),
-                            style=2,
+                            style=ButtonStyle.grey,
                         )
                     )
 
@@ -320,10 +321,10 @@ class Shop(commands.Cog):
             @on_click.from_user(ctx.author)
             async def selected(inter):
                 on_click.kill()
-                item = inter.component.custom_id
+                selected_item = inter.component.custom_id
                 await msg.edit(components=[])
                 ctx.command.reset_cooldown(ctx)
-                await getattr(Shop, self.bot.items[item]["func"])(self, ctx, item)
+                await getattr(Shop, self.bot.items[selected_item]["func"])(self, ctx, item)
 
             return
 
@@ -358,25 +359,25 @@ class Shop(commands.Cog):
         void = data["void crate"]
         embed = discord.Embed(
             title="Your boxes",
-            description="You can earn boxes by fighting, voting or defeating spesific bosses",
+            description="You can earn boxes by fighting, voting or defeating specific bosses",
             color=discord.Colour.blue(),
         )
         embed.add_field(
             name="Your boxes",
             value=f"""
-Standard cratse: {standard}
+Standard crates: {standard}
 Determination crates: {determin}
 soul crates: {soul}
 void crates: {void}
                               """,
         )
         row = ActionRow(
-            Button(style=2, label="Standard Crate", custom_id="standard crate"),
+            Button(style=ButtonStyle.grey, label="Standard Crate", custom_id="standard crate"),
             Button(
-                style=2, label="Determination Crate", custom_id="determination crate"
+                style=ButtonStyle.grey, label="Determination Crate", custom_id="determination crate"
             ),
-            Button(style=2, label="Soul Crate", custom_id="soul crate"),
-            Button(style=2, label="Void Crate", custom_id="void crate"),
+            Button(style=ButtonStyle.grey, label="Soul Crate", custom_id="soul crate"),
+            Button(style=ButtonStyle.grey, label="Void Crate", custom_id="void crate"),
         )
         msg = await ctx.send(embed=embed, components=[row])
 
@@ -405,7 +406,6 @@ void crates: {void}
             )
             data[item] -= 1
             gold = ctx.bot.crates[item]["gold"] + data["level"]
-            loot = ctx.bot.crates[item]["loot"]
             data["gold"] += gold
             await asyncio.sleep(3)
             await msg.edit(
@@ -417,7 +417,7 @@ void crates: {void}
                 item: data[item]
             }
             return await ctx.bot.players.update_one(
-                {"_id": ctx.author.id}, {"$set": data}
+                {"_id": ctx.author.id}, {"$set": info}
             )
 
 
