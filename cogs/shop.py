@@ -26,7 +26,6 @@ class Shop(commands.Cog):
 
     async def armor(self, ctx, item):
         data = await self.bot.players.find_one({"_id": ctx.author.id})
-        print(item)
         data["inventory"].remove(item)
         data["inventory"].append(data["armor"])
 
