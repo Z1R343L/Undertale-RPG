@@ -1,7 +1,5 @@
-import datetime
-
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 
 class Developer_Tools(commands.Cog):
@@ -77,7 +75,7 @@ class Developer_Tools(commands.Cog):
     async def vanish(self, ctx, user: discord.User = None):
         if user is None:
             return
-        data = self.bot.players.delete_one({"_id": user.id})
+        self.bot.players.delete_one({"_id": user.id})
         await ctx.send("Done")
 
     @commands.command()
@@ -119,7 +117,7 @@ class Developer_Tools(commands.Cog):
         info["fighting"] = False
         info["selected_monster"] = None
         await self.bot.players.update_one({"_id": author.id}, {"$set": info})
-        await ctx.reply("reseted")
+        await ctx.reply("rested")
 
 
 def setup(bot):

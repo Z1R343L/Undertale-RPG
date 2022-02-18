@@ -1,5 +1,5 @@
 import asyncio
-import imp
+import importlib
 
 import discord
 from discord.ext import commands
@@ -9,7 +9,7 @@ import botTools.loader as core
 import botTools.loader as loader
 from botTools.dataIO import fileIO
 
-imp.reload(core)
+importlib.reload(core)
 
 
 class Traveling(commands.Cog):

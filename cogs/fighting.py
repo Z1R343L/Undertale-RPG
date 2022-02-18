@@ -112,14 +112,14 @@ class Fight(commands.Cog):
             await msg.edit(components=[])
             on_click.kill()
 
-            data = {
+            output = {
                 "selected_monster": monster,
                 "monster_hp": enemy_hp,
                 "fighting": True,
                 "last_monster": monster
             }
 
-            await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
+            await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": output})
             print(f"{ctx.author} has entered a fight")
             return await Menu.menu(self, ctx)
 

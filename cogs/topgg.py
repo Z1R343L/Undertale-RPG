@@ -2,6 +2,7 @@ import time
 
 import dbl
 from discord.ext import commands
+from botTools.mHelper import bcolors
 
 
 class TopGG(commands.Cog):
@@ -26,13 +27,13 @@ class TopGG(commands.Cog):
         voter = await self.bot.fetch_user(vote_data["user"])
         info = await self.bot.players.find_one({"_id": voter.id})
         if info is None:
-            print("{bcolors.WARNING} This user is not registered.")
+            print(f"{bcolors.WARNING} This user is not registered.{bcolors.ENDC}")
             return
         info["gold"] = info["gold"] + 500
         info["standard crate"] += 1
         info["last_voted"] = time.time()
         await self.bot.players.update_one({"_id": voter.id}, {"$set": info})
-        print(f"Received a vote from {str(voter)}, They got their rewards succesfully")
+        print(f"{bcolors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{bcolors.ENDC}")
 
     @commands.Cog.listener()
     async def on_dbl_test(self, data):
@@ -42,7 +43,7 @@ class TopGG(commands.Cog):
         info["gold"] = info["gold"] + 500
         info["standard crate"] += 1
         await self.bot.players.update_one({"_id": voter.id}, {"$set": info})
-        print(f"Received a vote from {str(voter)}, They got their rewards succesfully")
+        print(f"{bcolors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{bcolors.ENDC}")
 
     @commands.command()
     @commands.is_owner()

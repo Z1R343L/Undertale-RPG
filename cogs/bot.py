@@ -139,7 +139,7 @@ class Bot(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     async def cleanup(self, ctx, search=100):
-        """Cleans up the bot's messages from the channel."""
+        """Cleans up the bots messages from the channel."""
 
         def check(m):
             return m.author == ctx.me or m.content.startswith(ctx.prefix)

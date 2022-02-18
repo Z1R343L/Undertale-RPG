@@ -65,8 +65,8 @@ class Duel(commands.Cog):
             await inter.reply("This is not yours kiddo!", ephemeral=True)
 
         @on_click.matching_id("no")
-        async def on_test_button(inter, reset_timeout=False):
-            embed.description += "\n\n**You Flee'd**"
+        async def on_test_button(reset_timeout=False):
+            embed.description += "\n\n**You Fled**"
             await msg.edit(embed=embed, components=[])
             on_click.kill()
 
@@ -88,7 +88,6 @@ def setup(bot):
 class Core:
     async def get_xp_bar(xp, max_xp):
         bar0 = "<:0_:877147611096842271>"
-        bar1 = "<:1_:877147647880880169> "
         bar2 = "<:2_:877147680638382080>"
         bar4 = "<:4_:877147771159842836>"
         bar5 = "<:5_:877147798619959296>"
@@ -97,7 +96,7 @@ class Core:
         per = mix * 100
         if per == 0:
             bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 10 and per > 0:
+        if 10 >= per > 0:
             bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
         if 20 >= per > 10:
             bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
@@ -115,7 +114,7 @@ class Core:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
         if 90 >= per > 80:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
-        if per <= 100 and per > 90:
+        if 100 >= per > 90:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
         return bar
 
@@ -133,28 +132,28 @@ class Core:
             bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
         if 20 >= per > 10:
             bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
-        if per <= 30 and per > 20:
+        if 30 >= per > 20:
             bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
         if 40 >= per > 30:
             bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
-        if per <= 50 and per > 40:
+        if 50 >= per > 40:
             bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
-        if per <= 60 and per > 50:
+        if 60 >= per > 50:
             bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
-        if per <= 70 and per > 60:
+        if 70 >= per > 60:
             bar = f"{bar5}{bar5}{bar5}<:3_:876786332817575946>{bar0}"
-        if per <= 80 and per > 70:
+        if 80 >= per > 70:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
-        if per <= 90 and per > 80:
+        if 90 >= per > 80:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
-        if per <= 100 and per > 90:
+        if 100 >= per > 90:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
         return bar
 
     async def count(store, value):
         try:
             store[value] = store[value] + 1
-        except KeyError as e:
+        except KeyError:
             store[value] = 1
             return
 
@@ -177,19 +176,19 @@ class Menu:
             await inter.reply("This is not yours kiddo!", ephemeral=True)
 
         @on_click.matching_id("fight")
-        async def on_test_button(inter, reset_timeout=False):
+        async def on_test_button(reset_timeout=False):
             await msg.edit(components=[])
             on_click.kill()
             await Attack.attack(self, ctx, att, rec)
 
         @on_click.matching_id("items")
-        async def on_test_button(inter, reset_timeout=False):
+        async def on_test_button(reset_timeout=False):
             await msg.edit(components=[])
             on_click.kill()
             await Items.use(self, ctx, att, rec)
 
         @on_click.matching_id("spare")
-        async def on_test_button(inter, reset_timeout=False):
+        async def on_test_button(reset_timeout=False):
             await msg.edit(components=[])
             on_click.kill()
             await Mercy.spare(self, ctx, att, rec)
@@ -210,34 +209,14 @@ class Attack:
         p2_dat = await ctx.bot.players.find_one({"_id": p2.id})
 
         weapon_dat = ctx.bot.items
-        armor_dat = ctx.bot.items
 
         p1_weapon = p1_dat["weapon"]
-        p2_weapon = p2_dat["weapon"]
-
-        p1_armor = p1_dat["armor"]
-        p2_armor = p2_dat["armor"]
-
-        p1_raw_damage = p1_dat["damage"]
-        p2_raw_damage = p2_dat["damage"]
 
         # calc for player 1 status
         min_dmg = weapon_dat[p1_weapon]["min_dmg"]
-        min_dfs = armor_dat[p1_armor]["min_dfs"]
         max_dmg = weapon_dat[p1_weapon]["max_dmg"]
-        max_dfs = armor_dat[p1_armor]["max_dfs"]
         p1_dmg = random.randint(min_dmg, max_dmg)
-        p1_dfs = random.randint(min_dfs, max_dfs)
 
-        # calc for player 2 status
-        min_dmg = weapon_dat[p2_weapon]["min_dmg"]
-        min_dfs = armor_dat[p2_armor]["min_dfs"]
-        max_dmg = weapon_dat[p2_weapon]["max_dmg"]
-        max_dfs = armor_dat[p2_armor]["max_dfs"]
-        p2_dmg = random.randint(min_dmg, max_dmg)
-        p2_dfs = random.randint(min_dfs, max_dfs)
-
-        p1_hp = p1_dat["health"]
         p2_hp = p2_dat["health"]
 
         dodge_chance = random.randint(1, 10)
@@ -289,7 +268,7 @@ class Items:
         data["inventory"].append(data["weapon"])
         data["weapon"] = item
         await ctx.bot.players.update_one({"_id": p1.id}, {"$set": data})
-        await ctx.send(f"Successfully equiped {item.title()}")
+        await ctx.send(f"Successfully equipped {item.title()}")
         await asyncio.sleep(2)
         return await Menu.menu(self, ctx, p2, p1)  # replace
 
@@ -301,9 +280,9 @@ class Items:
 
         data["armor"] = item
         await ctx.bot.players.update_one({"_id": p1.id}, {"$set": data})
-        await ctx.send(f"Succesfully equiped {item.title()}")
+        await ctx.send(f"Successfully equipped {item.title()}")
         await asyncio.sleep(2)
-        return await Attack.counter_attack(self, ctx)
+        return await Attack.attack(self, ctx, p2, p1)
 
     async def food(self, ctx, p1, p2, item):
         data = await ctx.bot.players.find_one({"_id": p1.id})
@@ -326,11 +305,11 @@ class Items:
         return await Menu.menu(self, ctx, p2, p1)  # replace
 
     async def use(self, ctx, p1, p2):
-        def countoccurrences(store, value):
+        def countoccurrences(stored, value):
             try:
-                store[value] = store[value] + 1
-            except KeyError as e:
-                store[value] = 1
+                stored[value] = stored[value] + 1
+            except KeyError:
+                stored[value] = 1
                 return
 
         await loader.create_player_info(ctx, p1)
@@ -364,7 +343,7 @@ class Items:
                     Button(
                         label=f"{key.title()} {item[key]}",
                         custom_id=key.lower(),
-                        style=2,
+                        style=ButtonStyle.grey,
                     )
                 )
 
@@ -382,10 +361,10 @@ class Items:
         @on_click.from_user(ctx.author)
         async def selected(inter):
             on_click.kill()
-            item = inter.component.id
+            selected_item = inter.component.id
             await msg.edit(components=[])
             try:
-                await getattr(Items, ctx.bot.items[item]["func"])(self, ctx, p1, p2, item)
+                await getattr(Items, ctx.bot.items[selected_item]["func"])(self, ctx, p1, p2, selected_item)
             except KeyError:
                 await ctx.send("Nothing happened")
                 await asyncio.sleep(2)
@@ -393,7 +372,9 @@ class Items:
 
 
 class Mercy:
-    async def spare(self, ctx, p1, p2):
+
+    @classmethod
+    async def spare(cls, ctx, p1, p2):
         p1_dat = await ctx.bot.players.find_one({"_id": p1.id})
         p2_dat = await ctx.bot.players.find_one({"_id": p2.id})
         p1_dat["fighting"] = False

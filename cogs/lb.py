@@ -12,7 +12,7 @@ class Leaderboard(commands.Cog):
     @commands.command(aliases=["lb"])
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def leaderboard(self, ctx, arg: str = "level"):
-        """see whos on the lead on gold amount"""
+        """see who's on the lead on gold amount"""
 
         data = self.bot.players.find().limit(10).sort(arg, -1)
         users = []

@@ -1,4 +1,4 @@
-import imp
+import importlib
 import random
 import time
 
@@ -8,7 +8,7 @@ from discord.ext import commands
 import botTools.loader as loader
 import cogs.fighting as fighting
 
-imp.reload(loader)
+importlib.reload(loader)
 
 starttime = time.time()
 
@@ -49,7 +49,7 @@ class Economy(commands.Cog):
             await self.bot.players.update_one(
                 {"_id": ctx.author.id}, {"$set": new_data}
             )
-            await ctx.send("You have reseted your world.")
+            await ctx.send("You have rested your world.")
         else:
             await ctx.send("You shall come back again!")
 
@@ -70,7 +70,7 @@ class Economy(commands.Cog):
             info["daily_block"] = curr_time
             await self.bot.players.update_one({"_id": author.id}, {"$set": info})
             em = discord.Embed(
-                description=f"**You recieved your daily gold! {int(goldget)} G**",
+                description=f"**You received your daily gold! {int(goldget)} G**",
                 color=discord.Color.blue(),
             )
         else:
@@ -178,11 +178,11 @@ class Economy(commands.Cog):
         await loader.create_player_info(ctx, ctx.author)
         info = await self.bot.players.find_one({"_id": author.id})
 
-        def countoccurrences(store, value):
+        def countoccurrences(stored, value):
             try:
-                store[value] = store[value] + 1
-            except KeyError as e:
-                store[value] = 1
+                stored[value] = stored[value] + 1
+            except KeyError:
+                stored[value] = 1
                 return
 
         gold = info["gold"]
@@ -228,7 +228,7 @@ class Economy(commands.Cog):
                         {"_id": author.id}, {"$set": info}
                     )
                     em = discord.Embed(
-                        description=f"**You recieved your supporter gold! {int(goldget)} G**",
+                        description=f"**You received your supporter gold! {int(goldget)} G**",
                         color=discord.Color.blue(),
                     )
                 else:
