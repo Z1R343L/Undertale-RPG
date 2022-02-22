@@ -446,10 +446,7 @@ class Items:
 
     async def armor(self, ctx, item):
         selected_item = None
-        for i in item.keys:
-            selected_item = str(i)
-
-        print(selected_item)
+        
         data = await ctx.bot.players.find_one({"_id": ctx.author.id})
         data["inventory"].remove(selected_item)
         data["inventory"].append(data["armor"])
