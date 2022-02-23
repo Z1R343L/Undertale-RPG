@@ -333,8 +333,8 @@ class Attack:
                 if event is not None:
                     xp_multi = int(event["multi_xp"])
                     gold_multi = int(event["multi_g"])
-                    gold = gold * event["multi_xp"]
-                    exp = exp * event["multi_g"]
+                    gold = gold * event["multi_g"]
+                    exp = exp * event["multi_xp"]
                     name = event["name"]
 
                     embed.description += f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
