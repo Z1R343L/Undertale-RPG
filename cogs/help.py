@@ -24,7 +24,7 @@ class HelpCommand(commands.Cog):
         text5 = f"You can use the command **{prefix}help** to see other commands!"
 
         text6 = f"There are rewards commands, **{prefix}daily & {prefix}supporter**, You can earn based on your level"
-        text7 = f"There is a command called **{prefix}reset**, reach level 100, and you can get multiplier for EXP " \
+        text7 = f"There is a command called **{prefix}reset**, reach level 70, and you can get multiplier for EXP " \
                 f"and GOLD!! "
         text8 = f"You can vote to get crates!, run the command **{prefix}vote**, then vote for us, then run the " \
                 f"command **{prefix}crate** to open your crates "

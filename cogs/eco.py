@@ -24,9 +24,9 @@ class Economy(commands.Cog):
         await loader.create_player_info(ctx, ctx.author)
         old_data = await self.bot.players.find_one({"_id": ctx.author.id})
 
-        if old_data["level"] < 100:
+        if old_data["level"] < 70:
             await ctx.send(
-                "you are not yet passed, reach **LVL100**, and you shall come back"
+                "you are not yet passed, reach **LVL70**, and you shall come back"
             )
             return
 
