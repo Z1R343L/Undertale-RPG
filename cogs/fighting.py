@@ -126,8 +126,11 @@ class Fight(commands.Cog):
         @on_click.timeout
         async def on_timeout():
             row.disable_buttons()
-            embed.description += "\n\nYou took too much to reply!"
-            await msg.edit(embed=embed, components=[row])
+            try:
+                embed.description += "\n\nYou took too much to reply!"
+                await msg.edit(embed=embed, components=[row])
+            except:
+                pass
 
 
 def setup(bot):
@@ -223,7 +226,7 @@ class Menu:
         player = ctx.author
         embed = discord.Embed(title="Choose an Option:", color=discord.Colour.red())
         msg = await ctx.send(player.mention, embed=embed, components=[row])
-        on_click = msg.create_click_listener(timeout=120)
+        on_click = msg.create_click_listener(timeout=40)
         row.disable_buttons()
 
         @on_click.not_from_user(ctx.author, cancel_others=True, reset_timeout=False)
@@ -256,14 +259,19 @@ class Menu:
             return await Mercy.spare(self, ctx, inter)
 
         @on_click.timeout
-        async def on_timeout(inter):
+        async def on_timeout():
             row.disable_buttons()
             embed.description = "You took too much to reply!"
-            await msg.edit(embed=embed, components=[row])
+            try:
+                await msg.edit(embed=embed, components=[row])
+            except:
+                pass
             data = {
                 "selected_monster": None,
                 "fighting": None
             }
+            print(f"{ctx.author} has ended the fight (timing out)")
+            ctx.command.reset_cooldown(ctx)
             return await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
 
 
@@ -446,7 +454,7 @@ class Items:
 
     async def armor(self, ctx, item):
         selected_item = None
-        
+
         data = await ctx.bot.players.find_one({"_id": ctx.author.id})
         data["inventory"].remove(selected_item)
         data["inventory"].append(data["armor"])
@@ -582,7 +590,7 @@ class Mercy:
         if monster is None:
             monster = info["last_monster"]
 
-        if monster is "sans":
+        if monster == "sans":
             await ctx.send(
                 "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
             )
@@ -621,7 +629,7 @@ class Mercy:
                 info["rest_block"] = time.time()
             info["selected_monster"] = None
             info["fighting"] = False
-            print(f"{ctx.author} has ended the fight")
+            print(f"{ctx.author} has ended the fight (sparing)")
             await msg.edit(embed=embed3)
             await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": info})
         elif sprfunc == "NotSpared":
