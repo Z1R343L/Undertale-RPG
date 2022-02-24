@@ -41,6 +41,7 @@ class Fight(commands.Cog):
                     url="https://cdn.discordapp.com/attachments/850983850665836544/878024511302271056/image0.png"
                 )
                 await ctx.send(embed=em)
+                ctx.command.reset_cooldown(ctx)
                 return
 
         if data["fighting"]:
@@ -65,6 +66,7 @@ class Fight(commands.Cog):
 
         if len(random_monster) == 0:
             await ctx.send(f"There are no monsters here?, Are you in an only boss area?, {ctx.prefix}boss")
+            ctx.command.reset_cooldown(ctx)
             return
         monster = random.choice(random_monster)
 
@@ -338,6 +340,7 @@ class Attack:
                 await Core._check_levelup(self, ctx)
                 await ctx.send(embed=embed)
                 print(f"{ctx.author} has ended the fight")
+                ctx.command.reset_cooldown(ctx)
             else:
                 info["monster_hp"] = enemy_hp_after
                 await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
@@ -400,7 +403,8 @@ class Attack:
                 description=f"**Stay Determines please!, You lost {gold_lost} G**",
                 color=discord.Colour.red(),
             )
-            print(f"{ctx.author} has ended the fight")
+            print(f"{ctx.author} has ended the fight (Died)")
+            ctx.command.reset_cooldown(ctx)
             await ctx.send(ctx.author.mention, embed=femb)
             return
         else:
@@ -599,6 +603,7 @@ class Mercy:
             info["selected_monster"] = None
             info["fighting"] = False
             print(f"{ctx.author} has ended the fight (sparing)")
+            ctx.command.reset_cooldown(ctx)
             await msg.edit(embed=embed3)
             await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": info})
         elif sprfunc == "NotSpared":
