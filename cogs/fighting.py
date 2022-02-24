@@ -67,72 +67,22 @@ class Fight(commands.Cog):
             await ctx.send(f"There are no monsters here?, Are you in an only boss area?, {ctx.prefix}boss")
             return
         monster = random.choice(random_monster)
-        row = ActionRow(
-            Button(style=ButtonStyle.green, label="Yes", custom_id="yes"),
-            Button(style=ButtonStyle.red, label="No", custom_id="no"),
-        )
 
         mon_hp_min = info[monster]["min_hp"]
         mon_hp_max = info[monster]["max_hp"]
-        damage = info[monster]["atk"]
 
         enemy_hp = random.randint(mon_hp_min, mon_hp_max)
 
-        health = data["health"]
-        title = info[monster]["title"]
-        print(monster)
+        output = {
+            "selected_monster": monster,
+            "monster_hp": enemy_hp,
+            "fighting": True,
+            "last_monster": monster
+        }
 
-        embed = discord.Embed(
-            title=f"{monster}, {title}",
-            description=f"**Your HP is {health}\nMonster health: {enemy_hp}HP\ncan deal up to {damage}ATK**",
-            color=discord.Colour.blue(),
-        )
-        image = info[monster]["im"]
-        embed.set_thumbnail(url=image)
-
-        msg = await ctx.send(ctx.author.mention, embed=embed, components=[row])
-
-        on_click = msg.create_click_listener(timeout=30)
-
-        @on_click.not_from_user(ctx.author, cancel_others=True, reset_timeout=False)
-        async def on_wrong_user(inter):
-            # Reply with a hidden message
-            await inter.reply("This is not yours kiddo!", ephemeral=True)
-
-        @on_click.matching_id("no")
-        async def on_test_button(inter, reset_timeout=False):
-            embed.description += "\n\n**You Fled**"
-            ctx.command.reset_cooldown(ctx)
-            row.disable_buttons()
-            await msg.edit(components=[row])
-            await inter.reply("You fled", ephemeral=True)
-            on_click.kill()
-            return
-
-        @on_click.matching_id("yes")
-        async def on_test_button(inter):
-            await msg.edit(components=[])
-            on_click.kill()
-
-            output = {
-                "selected_monster": monster,
-                "monster_hp": enemy_hp,
-                "fighting": True,
-                "last_monster": monster
-            }
-
-            await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": output})
-            print(f"{ctx.author} has entered a fight")
-            return await Menu.menu(self, ctx)
-
-        @on_click.timeout
-        async def on_timeout():
-            row.disable_buttons()
-            try:
-                embed.description += "\n\nYou took too much to reply!"
-                await msg.edit(embed=embed, components=[row])
-            except:
-                pass
+        await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": output})
+        print(f"{ctx.author} has entered a fight")
+        return await Menu.menu(self, ctx)
 
 
 def setup(bot):
@@ -226,7 +176,24 @@ class Menu:
         )
 
         player = ctx.author
-        embed = discord.Embed(title="Choose an Option:", color=discord.Colour.red())
+
+        info = await ctx.bot.players.find_one({"_id": player.id})
+
+        health = info["health"]
+        monster = info["selected_monster"]
+        title = ctx.bot.monsters[monster]["title"]
+        enemy_hp = info["monster_hp"]
+        damage = ctx.bot.monsters[monster]["atk"]
+
+        embed = discord.Embed(
+            title=f"{monster}, {title}",
+            description=f"**Your HP is {health}\nMonster health: {enemy_hp}HP\ncan deal up to {damage}ATK**",
+            color=discord.Colour.blue()
+        )
+
+        image = ctx.bot.monsters[monster]["im"]
+        embed.set_thumbnail(url=image)
+
         msg = await ctx.send(player.mention, embed=embed, components=[row])
         on_click = msg.create_click_listener(timeout=40)
         row.disable_buttons()
@@ -307,7 +274,7 @@ class Attack:
 
         if dodge_chance in [5, 9]:
             atem.description = f"**{monster}** Dodged the attack!"
-            await inter.reply(ctx.author.mention, embed=atem)
+            await inter.send(ctx.author.mention, embed=atem)
             await asyncio.sleep(3)
             await Attack.counter_attack(self, ctx)
         else:
@@ -319,7 +286,7 @@ class Attack:
             atem.set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
             )
-            await inter.reply(ctx.author.mention, embed=atem)
+            await inter.send(ctx.author.mention, embed=atem)
             if enemy_hp_after <= 0:
                 await asyncio.sleep(1)
                 embed = discord.Embed(
