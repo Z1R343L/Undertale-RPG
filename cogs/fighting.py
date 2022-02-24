@@ -75,18 +75,20 @@ class Fight(commands.Cog):
         mon_hp_min = info[monster]["min_hp"]
         mon_hp_max = info[monster]["max_hp"]
         damage = info[monster]["atk"]
-        # image = info[elocation]["enemies"][monster]["image"]
-        # embed.set_thumbnail(url=image)
+
         enemy_hp = random.randint(mon_hp_min, mon_hp_max)
 
         health = data["health"]
         title = info[monster]["title"]
+        print(monster)
 
         embed = discord.Embed(
             title=f"{monster}, {title}",
             description=f"**Your HP is {health}\nMonster health: {enemy_hp}HP\ncan deal up to {damage}ATK**",
             color=discord.Colour.blue(),
         )
+        image = info[monster]["im"]
+        embed.set_thumbnail(url=image)
 
         msg = await ctx.send(ctx.author.mention, embed=embed, components=[row])
 
