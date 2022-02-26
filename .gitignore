@@ -134,6 +134,9 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# Dude
+./gitconfig
+
 # mypy
 .mypy_cache/
 .dmypy.json
