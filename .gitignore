@@ -135,7 +135,7 @@ venv.bak/
 /site
 
 # Dude
-./gitconfig
+.gitconfig
 
 # mypy
 .mypy_cache/
