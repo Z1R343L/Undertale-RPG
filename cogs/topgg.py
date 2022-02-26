@@ -35,6 +35,7 @@ class TopGG(commands.Cog):
         await self.bot.players.update_one({"_id": voter.id}, {"$set": info})
         print(f"{bcolors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{bcolors.ENDC}")
 
+
     @commands.Cog.listener()
     async def on_dbl_test(self, data):
         vote_data = data
