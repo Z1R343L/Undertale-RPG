@@ -413,7 +413,7 @@ void crates: {void}
             )
             data[item] -= 1
             gold = ctx.bot.crates[item]["gold"] + data["level"]
-            data["gold"] += gold
+            gold = data["gold"] + gold
             await asyncio.sleep(3)
             await msg.edit(
                 content=f"{ctx.author.mention} earned {gold}G from a {item.title()}"
