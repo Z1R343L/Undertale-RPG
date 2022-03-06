@@ -109,16 +109,5 @@ class Developer_Tools(commands.Cog):
 
             await ctx.send("inventory cleared!")
 
-    @commands.command()
-    async def debug(self, ctx):
-        """Once you get stuck in a fight, run this command!"""
-        author = ctx.author
-        info = await self.bot.players.find_one({"_id": author.id})
-        info["fighting"] = False
-        info["selected_monster"] = None
-        await self.bot.players.update_one({"_id": author.id}, {"$set": info})
-        await ctx.reply("rested")
-
-
 def setup(bot):
     bot.add_cog(Developer_Tools(bot))

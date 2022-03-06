@@ -8,7 +8,8 @@ from dislash import *
 
 import botTools.loader as loader
 
-class Core:
+
+class battle:
     async def get_bar(health, max_health):
         bar0 = "<:0_:899376245496758343>"
         bar2 = "<:2_:899376429568000040>"
@@ -80,12 +81,10 @@ class Core:
                     await ctx.send(
                         f"Congrats, You unlocked {i}, you can go there by running {ctx.prefix}travel"
                     )
-            return await Core.check_levelup(self, ctx)
+            return await battle.check_levelup(self, ctx)
         else:
             return
 
-
-class Menu:
     async def menu(self, ctx):
         row = ActionRow(
             Button(style=ButtonStyle.red, label="Fight", custom_id="fight"),
@@ -126,7 +125,7 @@ class Menu:
         async def on_test_button(inter, reset_timeout=False):
             on_click.kill()
             await msg.edit(components=[row])
-            return await Attack.attack(self, ctx, inter)
+            return await battle.attack(self, ctx, inter)
 
         # @on_click.matching_id("act")
         # async def on_test_button(inter, reset_timeout=False):
@@ -138,13 +137,13 @@ class Menu:
         async def on_test_button(inter, reset_timeout=False):
             await msg.edit(components=[row])
             on_click.kill()
-            return await Items.use(self, ctx, inter)
+            return await battle.use(self, ctx, inter)
 
         @on_click.matching_id("spare")
         async def on_test_button(inter, reset_timeout=False):
             await msg.edit(components=[row])
             on_click.kill()
-            return await Mercy.spare(self, ctx, inter)
+            return await battle.spare(self, ctx, inter)
 
         @on_click.timeout
         async def on_timeout():
@@ -156,182 +155,189 @@ class Menu:
                 pass
             data = {
                 "selected_monster": None,
-                "fighting": None
             }
             print(f"{ctx.author} has ended the fight (timing out)")
             ctx.command.reset_cooldown(ctx)
+            ctx.bot.fights.remove(ctx.author.id)
             return await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
 
-
-class Attack:
     async def attack(self, ctx, inter):
-        event = ctx.bot.events
-        data = ctx.bot.monsters
-        author = ctx.author
-        info = await ctx.bot.players.find_one({"_id": author.id})
-        user_wep = info["weapon"]
-        monster = info["selected_monster"]
-        if monster is None:
-            monster = info["last_monster"]
-        damage = info["damage"]
-        enemy_hp = info["monster_hp"]
+        try:
+            event = ctx.bot.events
+            data = ctx.bot.monsters
+            author = ctx.author
+            info = await ctx.bot.players.find_one({"_id": author.id})
+            user_wep = info["weapon"]
+            monster = info["selected_monster"]
+            if monster is None:
+                monster = info["last_monster"]
+            damage = info["damage"]
+            enemy_hp = info["monster_hp"]
 
-        min_dmg = ctx.bot.items[user_wep]["min_dmg"]
-        max_dmg = ctx.bot.items[user_wep]["max_dmg"]
-        enemy_min_gold = data[monster]["min_gold"]
-        enemy_max_gold = data[monster]["max_gold"]
-        enemy_xp_min = data[monster]["min_xp"]
-        enemy_xp_max = data[monster]["max_xp"]
+            min_dmg = ctx.bot.items[user_wep]["min_dmg"]
+            max_dmg = ctx.bot.items[user_wep]["max_dmg"]
+            enemy_min_gold = data[monster]["min_gold"]
+            enemy_max_gold = data[monster]["max_gold"]
+            enemy_xp_min = data[monster]["min_xp"]
+            enemy_xp_max = data[monster]["max_xp"]
 
-        enemy_gold = random.randint(enemy_min_gold, enemy_max_gold)
-        enemy_xp = random.randint(enemy_xp_min, enemy_xp_max)
-        user_dmg = random.randint(min_dmg, max_dmg)
+            enemy_gold = random.randint(enemy_min_gold, enemy_max_gold)
+            enemy_xp = random.randint(enemy_xp_min, enemy_xp_max)
+            user_dmg = random.randint(min_dmg, max_dmg)
 
-        dodge_chance = random.randint(1, 10)
+            dodge_chance = random.randint(1, 10)
 
-        atem = discord.Embed(title="You Attack")
+            atem = discord.Embed(title="You Attack")
 
-        if dodge_chance in [5, 9]:
-            atem.description = f"**{monster}** Dodged the attack!"
-            await inter.send(ctx.author.mention, embed=atem)
-            await asyncio.sleep(3)
-            await Attack.counter_attack(self, ctx)
-        else:
-            # player attack
-            damage = int(user_dmg) + int(damage)
-            enemy_hp_after = int(enemy_hp) - damage
-            enemy_hp_after = max(enemy_hp_after, 0)
-            atem.description = f"You Damaged **{monster}**\n**-{user_dmg}HP**\ncurrent monster hp: **{enemy_hp_after}HP**"
+            if dodge_chance in [5, 9]:
+                atem.description = f"**{monster}** Dodged the attack!"
+                await inter.send(ctx.author.mention, embed=atem)
+                await asyncio.sleep(3)
+                await battle.counter_attack(self, ctx)
+            else:
+                # player attack
+                damage = int(user_dmg) + int(damage)
+                enemy_hp_after = int(enemy_hp) - damage
+                enemy_hp_after = max(enemy_hp_after, 0)
+                atem.description = f"You Damaged **{monster}**\n**-{user_dmg}HP**\ncurrent monster hp: **{enemy_hp_after}HP**"
+                atem.set_thumbnail(
+                    url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
+                )
+                await inter.send(ctx.author.mention, embed=atem)
+                if enemy_hp_after <= 0:
+                    await asyncio.sleep(1)
+                    embed = discord.Embed(
+                        title="You Won!",
+                        description=f"You Earned **{int(enemy_gold)} G** and **{int(enemy_xp)}XP**",
+                        color=discord.Colour.gold(),
+                    )
+                    embed.set_thumbnail(
+                        url="https://cdn.discordapp.com/attachments/850983850665836544/878997428840329246/image0.png"
+                    )
+                    xp_multi = int(info["multi_xp"])
+                    gold_multi = int(info["multi_g"])
+                    gold = enemy_gold
+                    exp = enemy_xp
+                    # Multiplier
+                    if info["multi_g"] > 1 and info["multi_xp"] > 1:
+                        gold = gold * info["multi_xp"]
+                        exp = exp * info["multi_g"]
+                        embed.description += f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+                    # Events
+                    if event is not None:
+                        xp_multi = int(event["multi_xp"])
+                        gold_multi = int(event["multi_g"])
+                        gold = gold * event["multi_g"]
+                        exp = exp * event["multi_xp"]
+                        name = event["name"]
+
+                        embed.description += f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+
+                    info["selected_monster"] = None
+                    info["monster_hp"] = 0
+                    ctx.bot.fights.remove(ctx.author.id)
+                    if ctx.invoked_with in ctx.bot.cmd_list:
+                        info["rest_block"] = time.time()
+
+                    info["gold"] = info["gold"] + gold
+                    info["exp"] = info["exp"] + exp
+
+                    if len(ctx.bot.monsters[monster]["loot"]) > 0:
+                        num = random.randint(0, 6)
+                        crate = ctx.bot.monsters[monster]["loot"][0]
+                        if num < 2:
+                            info[crate] += 1
+                            embed.description += (
+                                f"\n\n**You got a {crate}, check u?crate command**"
+                            )
+                    info["kills"] = info["kills"] + 1
+                    await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
+                    await battle.check_levelup(self, ctx)
+                    await ctx.send(embed=embed)
+                    print(f"{ctx.author} has ended the fight")
+                    ctx.command.reset_cooldown(ctx)
+                else:
+                    info["monster_hp"] = enemy_hp_after
+                    await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
+                    await asyncio.sleep(2)
+                    return await battle.counter_attack(self, ctx)
+
+            return
+        except Exception as e:
+            ctx.bot.fights.remove(ctx.author.id)
+            await ctx.bot.ge_channel(827651947678269510).send(e)
+
+
+    async def counter_attack(self, ctx):
+        try:
+            author = ctx.author
+            data = ctx.bot.monsters
+
+            info = await ctx.bot.players.find_one({"_id": ctx.author.id})
+            enemy_define = info["selected_monster"]
+            if enemy_define is None:
+                enemy_define = info["last_monster"]
+            enemy_dmg = data[enemy_define]["atk"]
+            user_ar = info["armor"].lower()
+            min_dfs = ctx.bot.items[user_ar]["min_dfs"]
+            max_dfs = ctx.bot.items[user_ar]["max_dfs"]
+            user_dfs = random.randint(min_dfs, max_dfs)
+            user_hp = info["health"]
+            user_max_hp = info["max_health"]
+
+            enemy_dmg = enemy_dmg - int(user_dfs)
+            if enemy_dmg <= 0:
+                enemy_dmg = 1
+                enemy_dmg = random.randint(enemy_dmg, enemy_dmg + 10)
+            dodge_chance = random.randint(1, 10)
+            atem = discord.Embed(title=f"{enemy_define} Attacks")
+
+            if dodge_chance >= 9:
+                atem.description = f"**{ctx.author.name}** Dodged the attack!"
+                await ctx.send(ctx.author.mention, embed=atem)
+                await asyncio.sleep(3)
+                return await battle.menu(self, ctx)
+
+            user_hp_after = int(user_hp) - int(enemy_dmg)
+            gold_lost = random.randint(10, 40) + info["level"]
+            atem.description = f"**{enemy_define}** Attacks\n**-{enemy_dmg}HP**\ncurrent hp: **{user_hp_after}HP\n{await battle.get_bar(user_hp_after, user_max_hp)}**"
             atem.set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
             )
-            await inter.send(ctx.author.mention, embed=atem)
-            if enemy_hp_after <= 0:
-                await asyncio.sleep(1)
-                embed = discord.Embed(
-                    title="You Won!",
-                    description=f"You Earned **{int(enemy_gold)} G** and **{int(enemy_xp)}XP**",
-                    color=discord.Colour.gold(),
-                )
-                embed.set_thumbnail(
-                    url="https://cdn.discordapp.com/attachments/850983850665836544/878997428840329246/image0.png"
-                )
-                xp_multi = int(info["multi_xp"])
-                gold_multi = int(info["multi_g"])
-                gold = enemy_gold
-                exp = enemy_xp
-                # Multiplier
-                if info["multi_g"] > 1 and info["multi_xp"] > 1:
-                    gold = gold * info["multi_xp"]
-                    exp = exp * info["multi_g"]
-                    embed.description += f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
-                # Events
-                if event is not None:
-                    xp_multi = int(event["multi_xp"])
-                    gold_multi = int(event["multi_g"])
-                    gold = gold * event["multi_g"]
-                    exp = exp * event["multi_xp"]
-                    name = event["name"]
+            await asyncio.sleep(2)
+            await ctx.send(ctx.author.mention, embed=atem)
 
-                    embed.description += f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
-
+            if user_hp_after <= 0:
+                info["gold"] = info["gold"] - gold_lost
+                info["gold"] = max(info["gold"], 0)
+                info["deaths"] = info["deaths"] + 1
+                info["health"] = 10
+                ctx.bot.fights.remove(ctx.author.id)
                 info["selected_monster"] = None
                 info["monster_hp"] = 0
-                info["fighting"] = False
-                if ctx.invoked_with in ctx.bot.cmd_list:
-                    info["rest_block"] = time.time()
-
-                info["gold"] = info["gold"] + gold
-                info["exp"] = info["exp"] + exp
-
-                if len(ctx.bot.monsters[monster]["loot"]) > 0:
-                    num = random.randint(0, 6)
-                    crate = ctx.bot.monsters[monster]["loot"][0]
-                    if num < 2:
-                        info[crate] += 1
-                        embed.description += (
-                            f"\n\n**You got a {crate}, check u?crate command**"
-                        )
-                info["kills"] = info["kills"] + 1
                 await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
-                await Core.check_levelup(self, ctx)
-                await ctx.send(embed=embed)
-                print(f"{ctx.author} has ended the fight")
+
+                await asyncio.sleep(3)
+                femb = discord.Embed(
+                    title="You Lost <:broken_heart:865088299520753704>",
+                    description=f"**Stay Determines please!, You lost {gold_lost} G**",
+                    color=discord.Colour.red(),
+                )
+                print(f"{ctx.author} has ended the fight (Died)")
                 ctx.command.reset_cooldown(ctx)
+                await ctx.send(ctx.author.mention, embed=femb)
+                return
             else:
-                info["monster_hp"] = enemy_hp_after
+                info["health"] = user_hp_after
                 await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
-                await asyncio.sleep(2)
-                return await Attack.counter_attack(self, ctx)
-
-        return
-
-    async def counter_attack(self, ctx):
-        author = ctx.author
-        data = ctx.bot.monsters
-
-        info = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        enemy_define = info["selected_monster"]
-        if enemy_define is None:
-            enemy_define = info["last_monster"]
-        enemy_dmg = data[enemy_define]["atk"]
-        user_ar = info["armor"].lower()
-        min_dfs = ctx.bot.items[user_ar]["min_dfs"]
-        max_dfs = ctx.bot.items[user_ar]["max_dfs"]
-        user_dfs = random.randint(min_dfs, max_dfs)
-        user_hp = info["health"]
-        user_max_hp = info["max_health"]
-
-        enemy_dmg = enemy_dmg - int(user_dfs)
-        if enemy_dmg <= 0:
-            enemy_dmg = 1
-            enemy_dmg = random.randint(enemy_dmg, enemy_dmg + 10)
-        dodge_chance = random.randint(1, 10)
-        atem = discord.Embed(title=f"{enemy_define} Attacks")
-
-        if dodge_chance >= 9:
-            atem.description = f"**{ctx.author.name}** Dodged the attack!"
-            await ctx.send(ctx.author.mention, embed=atem)
-            await asyncio.sleep(3)
-            return await Menu.menu(self, ctx)
-
-        user_hp_after = int(user_hp) - int(enemy_dmg)
-        gold_lost = random.randint(10, 40) + info["level"]
-        atem.description = f"**{enemy_define}** Attacks\n**-{enemy_dmg}HP**\ncurrent hp: **{user_hp_after}HP\n{await Core.get_bar(user_hp_after, user_max_hp)}**"
-        atem.set_thumbnail(
-            url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
-        )
-        await asyncio.sleep(2)
-        await ctx.send(ctx.author.mention, embed=atem)
-
-        if user_hp_after <= 0:
-            info["gold"] = info["gold"] - gold_lost
-            info["gold"] = max(info["gold"], 0)
-            info["deaths"] = info["deaths"] + 1
-            info["health"] = 10
-            info["fighting"] = False
-            info["selected_monster"] = None
-            info["monster_hp"] = 0
-            await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
-
-            await asyncio.sleep(3)
-            femb = discord.Embed(
-                title="You Lost <:broken_heart:865088299520753704>",
-                description=f"**Stay Determines please!, You lost {gold_lost} G**",
-                color=discord.Colour.red(),
-            )
-            print(f"{ctx.author} has ended the fight (Died)")
-            ctx.command.reset_cooldown(ctx)
-            await ctx.send(ctx.author.mention, embed=femb)
-            return
-        else:
-            info["health"] = user_hp_after
-            await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
-            await asyncio.sleep(3)
-            return await Menu.menu(self, ctx)
+                await asyncio.sleep(3)
+                return await battle.menu(self, ctx)
+        except Exception as e:
+            ctx.bot.fights.remove(ctx.author.id)
+            await ctx.bot.ge_channel(827651947678269510).send(e)
 
 
-class Items:
+
     async def weapon(self, ctx, item):
         data = await ctx.bot.players.find_one({"_id": ctx.author.id})
         data["inventory"].remove(item)
@@ -340,7 +346,7 @@ class Items:
         await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
         await ctx.send(f"Successfully equipped {item.title()}")
 
-        return await Attack.counter_attack(self, ctx)
+        return await battle.counter_attack(self, ctx)
 
     async def armor(self, ctx, item):
         selected_item = None
@@ -353,7 +359,7 @@ class Items:
         await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
         await ctx.send(f"Successfully equipped {item.title()}")
 
-        return await Attack.counter_attack(self, ctx)
+        return await battle.counter_attack(self, ctx)
 
     async def food(self, ctx, item):
         data = await ctx.bot.players.find_one({"_id": ctx.author.id})
@@ -365,13 +371,13 @@ class Items:
             data["health"] = data["max_health"]
             await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
             await ctx.send("Your health maxed out")
-            return await Attack.counter_attack(self, ctx)
+            return await battle.counter_attack(self, ctx)
         health = data["health"]
         await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
         await ctx.send(
             f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
         )
-        return await Attack.counter_attack(self, ctx)
+        return await battle.counter_attack(self, ctx)
 
     async def use(self, ctx, inter):
         def countoccurrences(stored, value):
@@ -380,154 +386,127 @@ class Items:
             except KeyError:
                 stored[value] = 1
                 return
+        try:
+            await loader.create_player_info(ctx, ctx.author)
+            data = await ctx.bot.players.find_one({"_id": ctx.author.id})
+            if len(data["inventory"]) == 0:
+                await ctx.send("You have nothing to use")
+                return await battle.counter_attack(self, ctx)
 
-        await loader.create_player_info(ctx, ctx.author)
-        data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        if len(data["inventory"]) == 0:
-            await ctx.send("You have nothing to use")
-            return await Attack.counter_attack(self, ctx)
+            items_list = []
+            for i in data["inventory"]:
+                items_list.append(i)
 
-        items_list = []
-        for i in data["inventory"]:
-            items_list.append(i)
+            embed = discord.Embed(
+                title="Inventory",
+                description="Welcome to your Inventory!",
+                color=discord.Colour.random(),
+            )
 
-        embed = discord.Embed(
-            title="Inventory",
-            description="Welcome to your Inventory!",
-            color=discord.Colour.random(),
-        )
-
-        rows = []
-        lista = []
-        inventory = []
-        store = {}
-        for data in data["inventory"]:
-            countoccurrences(store, data)
-        for k, v in store.items():
-            inventory.append({f"{k}": f"{v}x"})
-        for item in inventory:
-            for key in item:
-                lista.append(
-                    Button(
-                        label=f"{key.title()} {item[key]}",
-                        custom_id=key.lower(),
-                        style=ButtonStyle.grey,
+            rows = []
+            lista = []
+            inventory = []
+            store = {}
+            for data in data["inventory"]:
+                countoccurrences(store, data)
+            for k, v in store.items():
+                inventory.append({f"{k}": f"{v}x"})
+            for item in inventory:
+                for key in item:
+                    lista.append(
+                        Button(
+                            label=f"{key.title()} {item[key]}",
+                            custom_id=key.lower(),
+                            style=ButtonStyle.grey,
+                        )
                     )
-                )
 
-        for i in range(0, len(lista), 5):
-            rows.append(ActionRow(*lista[i: i + 5]))
+            for i in range(0, len(lista), 5):
+                rows.append(ActionRow(*lista[i: i + 5]))
 
-        msg = await inter.reply(embed=embed, components=rows)
+            msg = await inter.reply(embed=embed, components=rows)
 
-        on_click = msg.create_click_listener(timeout=120)
+            on_click = msg.create_click_listener(timeout=120)
 
-        @on_click.not_from_user(ctx.author, cancel_others=True, reset_timeout=False)
-        async def on_wrong_user(intr):
-            await intr.reply("This is not yours kiddo!", ephemeral=True)
+            @on_click.not_from_user(ctx.author, cancel_others=True, reset_timeout=False)
+            async def on_wrong_user(intr):
+                await intr.reply("This is not yours kiddo!", ephemeral=True)
 
-        @on_click.from_user(ctx.author)
-        async def selected(intr):
-            on_click.kill()
-            selected_item = intr.component.id
-            await msg.edit(components=[])
-            try:
-                await getattr(Items, ctx.bot.items[selected_item]["func"])(self, ctx, selected_item)
-            except KeyError:
-                await ctx.send("Nothing happened")
-                await asyncio.sleep(2)
-                return await Attack.counter_attack(self, ctx)
-
-
-"""
-class Act:
-    async def act(self, ctx):
-        type_mon = "monster"
-        data = ctx.bot.monsters
-        info = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        monster = info["selected_monster"]
-        if monster == None:
-            monster = info["last_monster"]
-        location = info["location"]
-        enemy_max_dmg = data[info["selected_monster"]]["atk"]
-        dg = data[monster]["check_data"]
-
-        embed = discord.Embed(title="Acts, Choose One", description="**Check**")
-        await ctx.send(embed=embed)
-        res = await ctx.bot.wait_for(
-            "message",
-            check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
-            timeout=120,
-        )
-
-        if res.content.lower() == "check":
-            embch = discord.Embed(
-                title="Monster Stats",
-                description=f"**{enemy_max_dmg}DMG, {dg}**",
-                color=discord.Colour.teal(),
-            )
-            await ctx.send(embed=embch)
-            await asyncio.sleep(6)
-        await asyncio.sleep(3)
-        await Attack.counter_attack(self, ctx)
-"""
+            @on_click.from_user(ctx.author)
+            async def selected(intr):
+                on_click.kill()
+                selected_item = intr.component.id
+                await msg.edit(components=[])
+                try:
+                    await getattr(battle, ctx.bot.items[selected_item]["func"])(self, ctx, selected_item)
+                except KeyError:
+                    await ctx.send("Nothing happened")
+                    await asyncio.sleep(2)
+                    return await battle.counter_attack(self, ctx)
+        except Exception as e:
+            ctx.bot.fights.remove(ctx.author.id)
+            await ctx.bot.ge_channel(827651947678269510).send(e)
 
 
-class Mercy:
     async def spare(self, ctx, inter):
-        info = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        monster = info["selected_monster"]
-        if monster is None:
-            monster = info["last_monster"]
+        try:
+            info = await ctx.bot.players.find_one({"_id": ctx.author.id})
+            monster = info["selected_monster"]
+            if monster is None:
+                monster = info["last_monster"]
 
-        if monster == "sans":
-            await ctx.send(
-                "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
+            if monster == "sans":
+                await ctx.send(
+                    "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
+                )
+                info["selected_monster"] = None
+                ctx.bot.fights.remove(ctx.author.id)
+                info["health"] = 10
+                if str(ctx.invoked_with) == "fboss":
+                    info["rest_block"] = time.time()
+                    await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": info})
+                    return
+
+            func = ["spared", "NotSpared", "spared"]
+            monster = info["selected_monster"]
+            sprfunc = random.choice(func)
+            embed1 = discord.Embed(
+                title="Mercy", description=f"You tried to spare {monster}"
             )
-            info["selected_monster"] = None
-            info["fighting"] = False
-            info["health"] = 10
-            if str(ctx.invoked_with) == "fboss":
-                info["rest_block"] = time.time()
+            embed1.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
+            )
+            msg = await inter.reply(embed=embed1)
+            await asyncio.sleep(5)
+            embed2 = discord.Embed(
+                title="Mercy", description="They didn't accepted your mercy"
+            )
+
+            embed2.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/793382520665669662/803889297936613416/image0.png"
+            )
+            embed3 = discord.Embed(title="Mercy", description="They accepted your mercy")
+            embed3.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
+            )
+            if sprfunc == "spared":
+                if str(ctx.invoked_with) in ctx.bot.cmd_list:
+                    info["rest_block"] = time.time()
+                info["selected_monster"] = None
+                ctx.bot.fights.remove(ctx.author.id)
+                print(f"{ctx.author} has ended the fight (sparing)")
+                ctx.command.reset_cooldown(ctx)
+                await msg.edit(embed=embed3)
                 await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": info})
-                return
+            elif sprfunc == "NotSpared":
+                await msg.edit(embed=embed2)
 
-        func = ["spared", "NotSpared", "spared"]
-        monster = info["selected_monster"]
-        sprfunc = random.choice(func)
-        embed1 = discord.Embed(
-            title="Mercy", description=f"You tried to spare {monster}"
-        )
-        embed1.set_thumbnail(
-            url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
-        )
-        msg = await inter.reply(embed=embed1)
-        await asyncio.sleep(5)
-        embed2 = discord.Embed(
-            title="Mercy", description="They didn't accepted your mercy"
-        )
+                await asyncio.sleep(4)
+                await battle.counter_attack(self, ctx)
 
-        embed2.set_thumbnail(
-            url="https://cdn.discordapp.com/attachments/793382520665669662/803889297936613416/image0.png"
-        )
-        embed3 = discord.Embed(title="Mercy", description="They accepted your mercy")
-        embed3.set_thumbnail(
-            url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
-        )
-        if sprfunc == "spared":
-            if str(ctx.invoked_with) in ctx.bot.cmd_list:
-                info["rest_block"] = time.time()
-            info["selected_monster"] = None
-            info["fighting"] = False
-            print(f"{ctx.author} has ended the fight (sparing)")
-            ctx.command.reset_cooldown(ctx)
-            await msg.edit(embed=embed3)
-            await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": info})
-        elif sprfunc == "NotSpared":
-            await msg.edit(embed=embed2)
-
-            await asyncio.sleep(4)
-            await Attack.counter_attack(self, ctx)  # replace
+        except Exception as e:
+            ctx.bot.fights.remove(ctx.author.id)
+            await ctx.bot.ge_channel(827651947678269510).send(e)
 
 class Fight(commands.Cog):
     def __init_(self, bot):
@@ -537,6 +516,9 @@ class Fight(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def fight(self, ctx):
         """Fight Monsters and gain EXP and Gold"""
+        if ctx.author.id in ctx.bot.fights:
+            return
+
         await loader.create_player_info(ctx, ctx.author)
         data = await ctx.bot.players.find_one({"_id": ctx.author.id})
         if ctx.invoked_with in ctx.bot.cmd_list:
@@ -555,9 +537,6 @@ class Fight(commands.Cog):
                 await ctx.send(embed=em)
                 ctx.command.reset_cooldown(ctx)
                 return
-
-        if data["fighting"]:
-            return
 
         location = data["location"]
         random_monster = []
@@ -590,13 +569,13 @@ class Fight(commands.Cog):
         output = {
             "selected_monster": monster,
             "monster_hp": enemy_hp,
-            "fighting": True,
             "last_monster": monster
         }
 
         await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": output})
         print(f"{ctx.author} has entered a fight")
-        return await Menu.menu(self, ctx)
+        ctx.bot.fights.append(ctx.author.id)
+        return await battle.menu(self, ctx)
 
 
 def setup(bot):
