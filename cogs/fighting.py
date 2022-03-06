@@ -8,89 +8,6 @@ from dislash import *
 
 import botTools.loader as loader
 
-
-class Fight(commands.Cog):
-    def __init_(self, bot):
-        self.bot = bot
-
-    @commands.command(aliases=["bossfight"])
-    @commands.cooldown(1, 30, commands.BucketType.user)
-    async def fboss(self, ctx):
-        """Fight Bosses and gain EXP and Gold"""
-        ctx.message.content = "u?boss"
-        await ctx.bot.process_commands(ctx.message)
-
-    @commands.command(aliases=["f", "boss"])
-    @commands.cooldown(1, 30, commands.BucketType.user)
-    async def fight(self, ctx):
-        """Fight Monsters and gain EXP and Gold"""
-        await loader.create_player_info(ctx, ctx.author)
-        data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        cmd_list = ["fboss", "bossfight", "boss"]
-        if ctx.invoked_with in cmd_list:
-            curr_time = time.time()
-            delta = int(curr_time) - int(data["rest_block"])
-
-            if 1800.0 >= delta > 0:
-                seconds = 1800 - delta
-                em = discord.Embed(
-                    description=f"**You can't fight a boss yet!**\n\n**You can fight a boss <t:{int(time.time()) + int(seconds)}:R>**",
-                    color=discord.Color.red(),
-                )
-                em.set_thumbnail(
-                    url="https://cdn.discordapp.com/attachments/850983850665836544/878024511302271056/image0.png"
-                )
-                await ctx.send(embed=em)
-                ctx.command.reset_cooldown(ctx)
-                return
-
-        if data["fighting"]:
-            return
-
-        location = data["location"]
-        random_monster = []
-
-        for i in ctx.bot.monsters:
-            if ctx.bot.monsters[i]["location"] == location:
-                if ctx.bot.monsters[i]["boss"] and ctx.invoked_with in cmd_list:
-                    random_monster.append(i)
-                elif (
-                        ctx.bot.monsters[i]["boss"] is False
-                        and ctx.invoked_with not in cmd_list
-                ):
-                    random_monster.append(i)
-                else:
-                    pass
-
-        info = ctx.bot.monsters
-
-        if len(random_monster) == 0:
-            await ctx.send(f"There are no monsters here?, Are you in an only boss area?, {ctx.prefix}boss")
-            ctx.command.reset_cooldown(ctx)
-            return
-        monster = random.choice(random_monster)
-
-        mon_hp_min = info[monster]["min_hp"]
-        mon_hp_max = info[monster]["max_hp"]
-
-        enemy_hp = random.randint(mon_hp_min, mon_hp_max)
-
-        output = {
-            "selected_monster": monster,
-            "monster_hp": enemy_hp,
-            "fighting": True,
-            "last_monster": monster
-        }
-
-        await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": output})
-        print(f"{ctx.author} has entered a fight")
-        return await Menu.menu(self, ctx)
-
-
-def setup(bot):
-    bot.add_cog(Fight(bot))
-
-
 class Core:
     async def get_bar(health, max_health):
         bar0 = "<:0_:899376245496758343>"
@@ -132,7 +49,7 @@ class Core:
             store[str(value)] = 1
             return
 
-    async def _check_levelup(self, ctx):
+    async def check_levelup(self, ctx):
         author = ctx.author
         info = await ctx.bot.players.find_one({"_id": author.id})
         xp = info["exp"]
@@ -163,7 +80,7 @@ class Core:
                     await ctx.send(
                         f"Congrats, You unlocked {i}, you can go there by running {ctx.prefix}travel"
                     )
-            return await Core._check_levelup(self, ctx)
+            return await Core.check_levelup(self, ctx)
         else:
             return
 
@@ -337,7 +254,7 @@ class Attack:
                         )
                 info["kills"] = info["kills"] + 1
                 await ctx.bot.players.update_one({"_id": author.id}, {"$set": info})
-                await Core._check_levelup(self, ctx)
+                await Core.check_levelup(self, ctx)
                 await ctx.send(embed=embed)
                 print(f"{ctx.author} has ended the fight")
                 ctx.command.reset_cooldown(ctx)
@@ -611,3 +528,76 @@ class Mercy:
 
             await asyncio.sleep(4)
             await Attack.counter_attack(self, ctx)  # replace
+
+class Fight(commands.Cog):
+    def __init_(self, bot):
+        self.bot = bot
+
+    @commands.command(aliases=["f", "boss", "fboss", "bossfight"])
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def fight(self, ctx):
+        """Fight Monsters and gain EXP and Gold"""
+        await loader.create_player_info(ctx, ctx.author)
+        data = await ctx.bot.players.find_one({"_id": ctx.author.id})
+        if ctx.invoked_with in ctx.bot.cmd_list:
+            curr_time = time.time()
+            delta = int(curr_time) - int(data["rest_block"])
+
+            if 1800.0 >= delta > 0:
+                seconds = 1800 - delta
+                em = discord.Embed(
+                    description=f"**You can't fight a boss yet!**\n\n**You can fight a boss <t:{int(time.time()) + int(seconds)}:R>**",
+                    color=discord.Color.red(),
+                )
+                em.set_thumbnail(
+                    url="https://cdn.discordapp.com/attachments/850983850665836544/878024511302271056/image0.png"
+                )
+                await ctx.send(embed=em)
+                ctx.command.reset_cooldown(ctx)
+                return
+
+        if data["fighting"]:
+            return
+
+        location = data["location"]
+        random_monster = []
+
+        for i in ctx.bot.monsters:
+            if ctx.bot.monsters[i]["location"] == location:
+                if ctx.bot.monsters[i]["boss"] and ctx.invoked_with in ctx.bot.cmd_list:
+                    random_monster.append(i)
+                elif (
+                        ctx.bot.monsters[i]["boss"] is False
+                        and ctx.invoked_with not in ctx.bot.cmd_list
+                ):
+                    random_monster.append(i)
+                else:
+                    pass
+
+        info = ctx.bot.monsters
+
+        if len(random_monster) == 0:
+            await ctx.send(f"There are no monsters here?, Are you in an only boss area?, {ctx.prefix}boss")
+            ctx.command.reset_cooldown(ctx)
+            return
+        monster = random.choice(random_monster)
+
+        mon_hp_min = info[monster]["min_hp"]
+        mon_hp_max = info[monster]["max_hp"]
+
+        enemy_hp = random.randint(mon_hp_min, mon_hp_max)
+
+        output = {
+            "selected_monster": monster,
+            "monster_hp": enemy_hp,
+            "fighting": True,
+            "last_monster": monster
+        }
+
+        await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": output})
+        print(f"{ctx.author} has entered a fight")
+        return await Menu.menu(self, ctx)
+
+
+def setup(bot):
+    bot.add_cog(Fight(bot))

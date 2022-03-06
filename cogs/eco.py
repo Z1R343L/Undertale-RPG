@@ -63,9 +63,9 @@ class Economy(commands.Cog):
         info = await self.bot.players.find_one({"_id": author.id})
         goldget = 500 * info["multi_g"]
         curr_time = time.time()
-        delta = float(curr_time) - float(info["daily_block"])
+        delta = int(curr_time) - int(info["daily_block"])
 
-        if delta >= 86400.0 and delta > 0:
+        if delta >= 86400 and delta > 0:
             info["gold"] += goldget
             info["daily_block"] = curr_time
             await self.bot.players.update_one({"_id": author.id}, {"$set": info})
@@ -219,9 +219,9 @@ class Economy(commands.Cog):
             goldget = random.randint(500, 1000) * info["multi_g"]
             try:
                 curr_time = time.time()
-                delta = float(curr_time) - float(info["supporter_block"])
+                delta = int(curr_time) - int(info["supporter_block"])
 
-                if delta >= 86400.0 and delta > 0:
+                if delta >= 86400 and delta > 0:
                     info["gold"] += goldget
                     info["supporter_block"] = curr_time
                     await self.bot.players.update_one(

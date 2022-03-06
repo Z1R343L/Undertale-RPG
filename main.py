@@ -1,4 +1,3 @@
-import logging
 import os
 
 import discord
@@ -11,10 +10,19 @@ from botTools.loader import _create_guild_info
 from botTools.mHelper import bcolors
 
 load_dotenv()
-FORMAT = f"{bcolors.WARNING} %(levelname)s : {bcolors.ENDC}" \
-         f" %(name)s %(filename)s {bcolors.BOLD}%(message)s {bcolors.ENDC} "
 
-logging.basicConfig(level=logging.INFO, format=FORMAT)
+DEFUALT_DISABLED_MESSAGE = (
+    "The bot is currently disabled for an update or an refresh is happening, please. "
+    "wait until its back up, you can join our support server to get notified once its backup."
+)
+
+CONCURRENCY_LIMITED_COMMANDS = {
+    "fight",
+    "f",
+    "boss",
+    "fboss",
+    "bossfight"
+}
 
 
 async def is_enabled(ctx):
@@ -43,14 +51,13 @@ class UndertaleBot(commands.AutoShardedBot):
         self.invite_url = "https://discord.gg/FQYVpuNz4Q"
         self.vote_url = "https://top.gg/bot/815153881217892372"
         self.currency = "<:doge_coin:864929485295321110>"
-        self.WARNING = "The bot is currently disabled for an update or an refresh is happening, please " \
-                       "wait until its back up, you can join our support server to get notified once its backup. "
         self.add_check(is_enabled)
         self.activity = discord.Game("Undertale | u?help ")
         self.ENABLED = False
         self.help_command = None
         self.events = None
         self.cmd_list = ["fboss", "bossfight", "boss"]
+        self.fights = []
 
     async def on_shard_connect(self, shard):
         print(f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN} is connected.{bcolors.ENDC}")
