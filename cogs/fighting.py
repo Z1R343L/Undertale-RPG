@@ -265,7 +265,7 @@ class battle:
             return
         except Exception as e:
             ctx.bot.fights.remove(ctx.author.id)
-            await ctx.bot.ge_channel(827651947678269510).send(e)
+            await ctx.bot.get_channel(827651947678269510).send(e)
 
 
     async def counter_attack(self, ctx):
@@ -334,50 +334,64 @@ class battle:
                 return await battle.menu(self, ctx)
         except Exception as e:
             ctx.bot.fights.remove(ctx.author.id)
-            await ctx.bot.ge_channel(827651947678269510).send(e)
+            await ctx.bot.get_channel(827651947678269510).send(e)
 
 
 
     async def weapon(self, ctx, item):
-        data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        data["inventory"].remove(item)
-        data["inventory"].append(data["weapon"])
-        data["weapon"] = item
-        await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-        await ctx.send(f"Successfully equipped {item.title()}")
+        try:
+            data = await ctx.bot.players.find_one({"_id": ctx.author.id})
+            data["inventory"].remove(item)
+            data["inventory"].append(data["weapon"])
+            data["weapon"] = item
+            await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
+            await ctx.send(f"Successfully equipped {item.title()}")
 
-        return await battle.counter_attack(self, ctx)
+            return await battle.counter_attack(self, ctx)
+        except Exception as e:
+            ctx.bot.fights.remove(ctx.author.id)
+            await ctx.bot.get_channel(827651947678269510).send(e)
 
     async def armor(self, ctx, item):
-        selected_item = None
+        try:
+            selected_item = None
 
-        data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        data["inventory"].remove(selected_item)
-        data["inventory"].append(data["armor"])
+            data = await ctx.bot.players.find_one({"_id": ctx.author.id})
+            data["inventory"].remove(selected_item)
+            data["inventory"].append(data["armor"])
 
-        data["armor"] = selected_item
-        await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-        await ctx.send(f"Successfully equipped {item.title()}")
+            data["armor"] = selected_item
+            await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
+            await ctx.send(f"Successfully equipped {item.title()}")
 
-        return await battle.counter_attack(self, ctx)
+            return await battle.counter_attack(self, ctx)
+
+        except Exception as e:
+            ctx.bot.fights.remove(ctx.author.id)
+            await ctx.bot.get_channel(827651947678269510).send(e)
 
     async def food(self, ctx, item):
-        data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-        data["inventory"].remove(item)
-        heal = ctx.bot.items[item]["HP"]
-        data["health"] += heal
+        try:
+            data = await ctx.bot.players.find_one({"_id": ctx.author.id})
+            data["inventory"].remove(item)
+            heal = ctx.bot.items[item]["HP"]
+            data["health"] += heal
 
-        if data["health"] >= data["max_health"]:
-            data["health"] = data["max_health"]
+            if data["health"] >= data["max_health"]:
+                data["health"] = data["max_health"]
+                await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
+                await ctx.send("Your health maxed out")
+                return await battle.counter_attack(self, ctx)
+            health = data["health"]
             await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-            await ctx.send("Your health maxed out")
+            await ctx.send(
+                f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
+            )
             return await battle.counter_attack(self, ctx)
-        health = data["health"]
-        await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
-        await ctx.send(
-            f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
-        )
-        return await battle.counter_attack(self, ctx)
+
+        except Exception as e:
+            ctx.bot.fights.remove(ctx.author.id)
+            await ctx.bot.get_channel(827651947678269510).send(e)
 
     async def use(self, ctx, inter):
         def countoccurrences(stored, value):
@@ -445,7 +459,7 @@ class battle:
                     return await battle.counter_attack(self, ctx)
         except Exception as e:
             ctx.bot.fights.remove(ctx.author.id)
-            await ctx.bot.ge_channel(827651947678269510).send(e)
+            await ctx.bot.get_channel(827651947678269510).send(e)
 
 
     async def spare(self, ctx, inter):
@@ -506,7 +520,7 @@ class battle:
 
         except Exception as e:
             ctx.bot.fights.remove(ctx.author.id)
-            await ctx.bot.ge_channel(827651947678269510).send(e)
+            await ctx.bot.get_channel(827651947678269510).send(e)
 
 class Fight(commands.Cog):
     def __init_(self, bot):
