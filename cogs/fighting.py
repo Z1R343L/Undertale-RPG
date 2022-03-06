@@ -29,7 +29,7 @@ class Fight(commands.Cog):
         cmd_list = ["fboss", "bossfight", "boss"]
         if ctx.invoked_with in cmd_list:
             curr_time = time.time()
-            delta = float(curr_time) - float(data["rest_block"])
+            delta = int(curr_time) - int(data["rest_block"])
 
             if 1800.0 >= delta > 0:
                 seconds = 1800 - delta
@@ -598,7 +598,7 @@ class Mercy:
             url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
         )
         if sprfunc == "spared":
-            if str(ctx.invoked_with) == "fboss":
+            if str(ctx.invoked_with) in ctx.bot.cmd_list:
                 info["rest_block"] = time.time()
             info["selected_monster"] = None
             info["fighting"] = False

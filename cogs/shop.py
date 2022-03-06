@@ -412,11 +412,11 @@ void crates: {void}
                 components=[],
             )
             data[item] -= 1
-            gold = ctx.bot.crates[item]["gold"] + data["level"]
-            gold = data["gold"] + gold
+            earned_gold = ctx.bot.crates[item]["gold"] + data["level"]
+            gold = data["gold"] + earned_gold
             await asyncio.sleep(3)
             await msg.edit(
-                content=f"{ctx.author.mention} earned {gold}G from a {item.title()}"
+                content=f"{ctx.author.mention} earned {earned_gold}G from a {item.title()}"
             )
             ctx.command.reset_cooldown(ctx)
             info = {
