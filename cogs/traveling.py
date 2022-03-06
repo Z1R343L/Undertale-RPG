@@ -20,6 +20,8 @@ class Traveling(commands.Cog):
     @commands.cooldown(1, 6, commands.BucketType.user)
     async def travel(self, ctx):
         """Travel to other spots of the world"""
+        if ctx.author.id in ctx.bot.fights:
+            return
         await loader.create_player_info(ctx, ctx.author)
         info = await self.bot.players.find_one({"_id": ctx.author.id})
         data = fileIO("data/traveling.json", "load")

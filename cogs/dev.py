@@ -53,17 +53,11 @@ class Developer_Tools(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def in_fight(self, ctx):
-        data = self.bot.players.find()
-        listo = ""
-        async for user in data:
-            if user["fighting"]:
-                name = user["name"]
-                ids = user["_id"]
-                listo += f"**Name:** {name} \n**ID:** {ids}\n"
+        data = ctx.bot.fights
 
         embed = discord.Embed(
             title="list of people inside the fight flag",
-            description=listo
+            description=data
         )
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/900274624594575361/928703846476288120/IMG_0370.png"

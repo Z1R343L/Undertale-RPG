@@ -75,7 +75,7 @@ class Shop(commands.Cog):
         author = ctx.author
         await loader.create_player_info(ctx, ctx.author)
         info = await self.bot.players.find_one({"_id": author.id})
-        if info["fighting"]:
+        if ctx.author.id in ctx.bot.fights:
             return
         items = [key for key in info["inventory"]]
         if not items:
@@ -156,7 +156,7 @@ class Shop(commands.Cog):
             if len(data["inventory"]) >= 10:
                 await ctx.send("Your carrying alot of items!")
                 return
-            if data["fighting"]:
+            if ctx.author.id in ctx.bot.fights:
                 return
             items_list = []
             gold = data["gold"]
