@@ -354,13 +354,12 @@ class battle:
 
     async def armor(self, ctx, item):
         try:
-            selected_item = None
 
             data = await ctx.bot.players.find_one({"_id": ctx.author.id})
-            data["inventory"].remove(selected_item)
+            data["inventory"].remove(item)
             data["inventory"].append(data["armor"])
 
-            data["armor"] = selected_item
+            data["armor"] = item
             await ctx.bot.players.update_one({"_id": ctx.author.id}, {"$set": data})
             await ctx.send(f"Successfully equipped {item.title()}")
 
