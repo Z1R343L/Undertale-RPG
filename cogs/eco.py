@@ -49,7 +49,7 @@ class Economy(commands.Cog):
             await self.bot.players.update_one(
                 {"_id": ctx.author.id}, {"$set": new_data}
             )
-            await ctx.send("You have rested your world.")
+            await ctx.send("You have resseted your world.")
         else:
             await ctx.send("You shall come back again!")
 
@@ -110,7 +110,7 @@ class Economy(commands.Cog):
         health = info["health"]
         max_health = info["max_health"]
 
-        bar = await fighting.battle.get_bar(health, max_health)
+        bar = await get_bar(max_health)
         attack = info["damage"]
         armor = info["armor"]
         weapon = info["weapon"]
