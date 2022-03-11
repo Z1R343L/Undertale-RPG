@@ -110,7 +110,7 @@ class Economy(commands.Cog):
         health = info["health"]
         max_health = info["max_health"]
 
-        bar = await battle.get_bar(max_health)
+        bar = await fighting.battle.get_bar(max_health)
         attack = info["damage"]
         armor = info["armor"]
         weapon = info["weapon"]
