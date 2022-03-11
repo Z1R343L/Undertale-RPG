@@ -8,50 +8,48 @@ from dislash import *
 
 import botTools.loader as loader
 
-
-async def count(keys, value):
-    try:
-        keys[str(value)] = keys[value] + 1
-    except KeyError:
-        keys[str(value)] = 1
-        return
-
-
-async def get_bar(health, max_health):
-    bar0 = "<:0_:899376245496758343>"
-    bar2 = "<:2_:899376429568000040>"
-    bar3 = "<:3_:899376559700451379>"
-    bar4 = "<:4_:899376608220172339>"
-    bar5 = "<:5_:899376657759088750>"
-    bar = None
-    mix = health / max_health
-    per = mix * 100
-    if per == 0:
-        bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
-    if 10 >= per > 0:
-        bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
-    if 20 >= per > 10:
-        bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
-    if 30 >= per > 20:
-        bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
-    if 40 >= per > 30:
-        bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
-    if 50 >= per > 40:
-        bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
-    if 60 >= per > 50:
-        bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
-    if 70 >= per > 60:
-        bar = f"{bar5}{bar5}{bar5}{bar3}{bar0}"
-    if 80 >= per > 70:
-        bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
-    if 90 >= per > 80:
-        bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
-    if 100 >= per > 90:
-        bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
-    return bar
-
-
 class battle:
+
+    async def count(keys, value):
+        try:
+            keys[str(value)] = keys[value] + 1
+        except KeyError:
+            keys[str(value)] = 1
+            return
+
+
+    async def get_bar(health, max_health):
+        bar0 = "<:0_:899376245496758343>"
+        bar2 = "<:2_:899376429568000040>"
+        bar3 = "<:3_:899376559700451379>"
+        bar4 = "<:4_:899376608220172339>"
+        bar5 = "<:5_:899376657759088750>"
+        bar = None
+        mix = health / max_health
+        per = mix * 100
+        if per == 0:
+            bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
+        if 10 >= per > 0:
+            bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
+        if 20 >= per > 10:
+            bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
+        if 30 >= per > 20:
+            bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
+        if 40 >= per > 30:
+            bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
+        if 50 >= per > 40:
+            bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
+        if 60 >= per > 50:
+            bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
+        if 70 >= per > 60:
+            bar = f"{bar5}{bar5}{bar5}{bar3}{bar0}"
+        if 80 >= per > 70:
+            bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
+        if 90 >= per > 80:
+            bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
+        if 100 >= per > 90:
+            bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
+        return bar
 
     async def check_levelup(self, ctx):
         author = ctx.author
@@ -302,7 +300,7 @@ class battle:
 
             user_hp_after = int(user_hp) - int(enemy_dmg)
             gold_lost = random.randint(10, 40) + info["level"]
-            atem.description = f"**{enemy_define}** Attacks\n**-{enemy_dmg}HP**\ncurrent hp: **{user_hp_after}HP\n{await get_bar(user_hp_after, user_max_hp)}**"
+            atem.description = f"**{enemy_define}** Attacks\n**-{enemy_dmg}HP**\ncurrent hp: **{user_hp_after}HP\n{await battle.get_bar(user_hp_after, user_max_hp)}**"
             atem.set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
             )
@@ -415,7 +413,7 @@ class battle:
             inventory = []
             keys = {}
             for data in data["inventory"]:
-                await count(keys, data)
+                await battle.count(keys, data)
             for k, v in keys.items():
                 inventory.append({f"{k}": f"{v}x"})
             for item in inventory:
