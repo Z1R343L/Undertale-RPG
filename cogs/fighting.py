@@ -224,7 +224,6 @@ class battle:
                     await battle.check_levelup(self, inter)
                     await inter.send(embed=embed)
                     print(f"{inter.author} has ended the fight")
-                    inter.command.reset_cooldown(inter)
                 else:
                     info["monster_hp"] = enemy_hp_after
                     await inter.bot.players.update_one({"_id": author.id}, {"$set": info})
@@ -292,7 +291,7 @@ class battle:
                     color=disnake.Colour.red(),
                 )
                 print(f"{inter.author} has ended the fight (Died)")
-                inter.command.reset_cooldown(inter)
+                # inter.command.reset_cooldown(inter)
                 await inter.send(inter.author.mention, embed=femb)
                 return
             else:
@@ -511,7 +510,7 @@ class Fight(commands.Cog):
 
         if len(random_monster) == 0:
             await inter.send(f"There are no monsters here?, Are you in an only boss area?, {inter.prefix}boss")
-            inter.command.reset_cooldown(inter)
+            #inter.command.reset_cooldown(inter)
             return
         monster = random.choice(random_monster)
 
@@ -534,40 +533,49 @@ class Fight(commands.Cog):
     @components.button_with_id(regex=r'fight:(?P<uid>\d+)')
     async def f_b(self, inter: disnake.MessageInteraction, uid: str) -> None:
         if inter.author.id != int(uid):
-            await inter.send('not allowed!', ephemeral=True)
+            await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
         await inter.response.defer()
-        await inter.edit_original_message(components=None)
+        msg = await inter.original_message()
+        row = await utility.utils.disable_all(msg)
+
+        await inter.edit_original_message(components=row)
         return await battle.attack(self, inter)
 
     @components.button_with_id(regex=r'items:(?P<uid>\d+)')
     async def i_b(self, inter: disnake.MessageInteraction, uid: str) -> None:
         if inter.author.id != int(uid):
-            await inter.send('not allowed!', ephemeral=True)
+            await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
         await inter.response.defer()
-        await inter.edit_original_message(components=None)
+
+        msg = await inter.original_message()
+        row = await utility.utils.disable_all(msg)
+
+        await inter.edit_original_message(components=row)
         return await battle.use(self, inter)
 
     @components.button_with_id(regex=r'spare:(?P<uid>\d+)')
     async def m_b(self, inter: disnake.MessageInteraction, uid: str) -> None:
         if inter.author.id != int(uid):
-            await inter.send('not allowed!', ephemeral=True)
+            await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
         await inter.response.defer()
-        await inter.edit_original_message(components=None)
+        msg = await inter.original_message()
+        row = await utility.utils.disable_all(msg)
+
+        await inter.edit_original_message(components=row)
         return await battle.spare(self, inter)
 
     @components.button_with_id(regex=r'food:(?P<item>\D+):(?P<uid>\d+)')
     async def fr_b(self, inter: disnake.MessageInteraction, uid: str, item: str) -> None:
         if inter.author.id != int(uid):
-            await inter.send('not allowed!', ephemeral=True)
+            await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        await inter.channel.send(item)
         await inter.response.defer()
 
         msg = await inter.original_message()
@@ -575,8 +583,7 @@ class Fight(commands.Cog):
 
         await inter.edit_original_message(components=row)
 
-        await getattr(battle, inter.bot.items[item]["func"])(self, inter, item)
-        # return await battle.spare(self, inter)
+        return await getattr(battle, inter.bot.items[item]["func"])(self, inter, item)
 
 def setup(bot):
     bot.add_cog(Fight(bot))

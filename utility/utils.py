@@ -1,3 +1,5 @@
+from disnake.ui import Button
+
 class bcolors:
     HEADER = '\033[95m'
     BLUE = '\033[94m'
@@ -15,7 +17,6 @@ async def disable_all(msg):
     for i in msg.components:
         for b in i.children:
             b.disabled = True
+            b = Button.from_component(b)
             new.append(b)
-            print(b)
-
     return new
