@@ -3,10 +3,10 @@ import importlib
 import sys
 import traceback
 
-from discord.ext import commands, tasks
+from disnake.ext import commands, tasks
 
-import botTools.loader as loader
-from botTools.mHelper import bcolors
+import utility.loader as loader
+from utility.utils import bcolors
 
 importlib.reload(loader)
 

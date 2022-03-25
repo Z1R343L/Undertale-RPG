@@ -1,13 +1,13 @@
 import os
 
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 from dislash import InteractionClient
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from botTools.loader import _create_guild_info
-from botTools.mHelper import bcolors
+from utility.loader import _create_guild_info
+from utility.utils import bcolors
 
 load_dotenv()
 
@@ -52,7 +52,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.vote_url = "https://top.gg/bot/815153881217892372"
         self.currency = "<:doge_coin:864929485295321110>"
         self.add_check(is_enabled)
-        self.activity = discord.Game("Undertale | u?help ")
+        self.activity = disnake.Game("Undertale | u?help ")
         self.ENABLED = False
         self.help_command = None
         self.events = None
@@ -107,8 +107,11 @@ bot = UndertaleBot(
         536538183555481601,
         513351917481623572,
     ],
+    test_guilds=[
+        817437132397871135
+    ]
 )
 
-bot.slash = InteractionClient(bot)
+# bot.slash = InteractionClient(bot)
 bot.load_extension("jishaku")
 bot.run(bot.BotToken)

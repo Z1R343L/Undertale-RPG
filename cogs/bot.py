@@ -2,11 +2,11 @@ import time
 from typing import Counter
 
 import aiohttp
-import discord
-from discord.ext import commands, tasks
+import disnake
+from disnake.ext import commands, tasks
 
-from botTools.dataIO import fileIO
-from botTools.loader import create_guild_info
+from utility.dataIO import fileIO
+from utility.loader import create_guild_info
 
 starttime = time.time()
 
@@ -45,10 +45,10 @@ class Bot(commands.Cog):
         banner = event["banner"]
         desc = event["desc"]
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title=f"{name} Event",
             description=desc,
-            colour=discord.Colour.random()
+            colour=disnake.Colour.random()
         )
         embed.set_image(url=banner)
         await ctx.send(embed=embed)
@@ -67,7 +67,7 @@ class Bot(commands.Cog):
     @commands.command(aliases=["about"])
     async def info(self, ctx):
         """information about the bot and more"""
-        em = discord.Embed(color=discord.Colour.random())
+        em = disnake.Embed(color=disnake.Colour.random())
 
         em.title = "Undertale RPG"
         em.description = "An Undertale RPG Themed bot for discord, Made by LetsChill#0001"
@@ -90,13 +90,13 @@ class Bot(commands.Cog):
             value=f"{ctx.guild.shard_id}/{len(self.bot.shards)}",
             inline=False
         )
-        em.set_thumbnail(url=self.bot.user.avatar_url)
+        em.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.reply(embed=em)
 
     @commands.command()
     async def vote(self, ctx):
         """Vote for the bot for special reward"""
-        vt = discord.Embed(title="<:DT:865088692376829952> Voting", color=0x2ECC71)
+        vt = disnake.Embed(title="<:DT:865088692376829952> Voting", color=0x2ECC71)
         vt.add_field(
             name="Vote on Top.gg (500G + Standard crate)",
             value=f"[Click Here]({self.bot.vote_url})",
@@ -112,9 +112,9 @@ class Bot(commands.Cog):
     @commands.command(aliases=["support"])
     async def invite(self, ctx):
         """Invite the bot!!!"""
-        e = discord.Embed(
+        e = disnake.Embed(
             title="Wanna add me to your server huh?, click the link below!",
-            color=discord.Colour.blue(),
+            color=disnake.Colour.blue(),
         )
         e.add_field(
             name="Invite Bot",
@@ -125,7 +125,7 @@ class Bot(commands.Cog):
             name="Join server", value="[Click Here](https://discord.gg/FQYVpuNz4Q)"
         )
 
-        e.set_thumbnail(url=self.bot.user.avatar_url)
+        e.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.send(embed=e)
 
     @commands.command(aliases=["latency"])

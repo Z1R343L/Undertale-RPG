@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 
 class HelpCommand(commands.Cog):
@@ -10,7 +10,7 @@ class HelpCommand(commands.Cog):
     @commands.command()
     async def tutorial(self, ctx):
         prefix = ctx.prefix
-        embed = discord.Embed(title="Welcome to Undertale RPG!")
+        embed = disnake.Embed(title="Welcome to Undertale RPG!")
 
         text1 = "**This bot is an Undertale Themed RPG!, You can fight monsters from Undertale on discord!**"
 
@@ -41,16 +41,16 @@ class HelpCommand(commands.Cog):
         if command is not None:
             command = self.bot.get_command(command)
         if command is not None:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 title=f"{command.name} Command",
                 description=f"**Usage:**\n `{ctx.prefix}{command.name} {command.signature}`\n\n**Description:**\n{command.help}",
-                color=discord.Colour.random(),
+                color=disnake.Colour.random(),
             )
             await ctx.send(embed=embed)
             return
-        emb = discord.Embed(
+        emb = disnake.Embed(
             title="📜┃list of commands and modules of the bot",
-            color=discord.Colour.random(),
+            color=disnake.Colour.random(),
         )
         forbid = [
             "TopGG",
@@ -72,7 +72,7 @@ class HelpCommand(commands.Cog):
             )
         emb.set_footer(
             text=f"{ctx.prefix}help <category> or <command>",
-            icon_url=ctx.author.avatar_url,
+            icon_url=ctx.author.avatar.url,
         )
 
         emb.set_image(

@@ -1,13 +1,12 @@
 import asyncio
 import importlib
 
-import discord
-from discord.ext import commands
+from disnake.ext import commands
 from dislash import *
 
-import botTools.loader as core
-import botTools.loader as loader
-from botTools.dataIO import fileIO
+import utility.loader as core
+import utility.loader as loader
+from utility.dataIO import fileIO
 
 importlib.reload(core)
 
@@ -38,8 +37,8 @@ class Traveling(commands.Cog):
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
 
-        em = discord.Embed(
-            title="Where would you like to go?", color=discord.Color.blue()
+        em = disnake.Embed(
+            title="Where would you like to go?", color=disnake.Color.blue()
         )
         lvl = info["level"]
         loc = info["location"]
@@ -65,9 +64,9 @@ class Traveling(commands.Cog):
                 return
 
             if answer in data:
-                em = discord.Embed(
+                em = disnake.Embed(
                     description=f"**{ctx.author.name} Traveling to {answer}...**",
-                    color=discord.Color.red(),
+                    color=disnake.Color.red(),
                 )
                 msg_1 = await ctx.send(embed=em)
                 await asyncio.sleep(3)

@@ -8,3 +8,14 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDER = '\033[4m'
+
+async def disable_all(msg):
+    new = []
+
+    for i in msg.components:
+        for b in i.children:
+            b.disabled = True
+            new.append(b)
+            print(b)
+
+    return new

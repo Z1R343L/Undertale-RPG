@@ -2,10 +2,10 @@ import importlib
 import random
 import time
 
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
-import botTools.loader as loader
+import utility.loader as loader
 import cogs.fighting as fighting
 
 importlib.reload(loader)
@@ -69,15 +69,15 @@ class Economy(commands.Cog):
             info["gold"] += goldget
             info["daily_block"] = curr_time
             await self.bot.players.update_one({"_id": author.id}, {"$set": info})
-            em = discord.Embed(
+            em = disnake.Embed(
                 description=f"**You received your daily gold! {int(goldget)} G**",
-                color=discord.Color.blue(),
+                color=disnake.Color.blue(),
             )
         else:
             seconds = 86400 - delta
-            em = discord.Embed(
+            em = disnake.Embed(
                 description=f"**You can't claim your daily reward yet!\n\nYou can claim your daily reward <t:{int(time.time()) + int(seconds)}:R>**",
-                color=discord.Color.red(),
+                color=disnake.Color.red(),
             )
 
         await ctx.send(embed=em)
@@ -89,16 +89,16 @@ class Economy(commands.Cog):
         await loader.create_player_info(ctx, ctx.author)
         info = await self.bot.players.find_one({"_id": ctx.author.id})
         bal = info["gold"]
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title="Balance",
             description=f"Your balance:\n**{int(bal)}G**",
-            color=discord.Colour.random(),
+            color=disnake.Colour.random(),
         )
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["level", "progress", "lvl", "stat", "profile"])
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def stats(self, ctx, member: discord.User = None):
+    async def stats(self, ctx, member: disnake.User = None):
         """Check your stats and powers"""
         player = member or ctx.author
         await loader.create_player_info(ctx, ctx.author)
@@ -122,10 +122,10 @@ class Economy(commands.Cog):
         xp_mult = info["multi_xp"]
         tokens = info["tokens"]
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title=f"{player.name}‘s Stats!",
             description="Your Status and progress in the game",
-            color=discord.Color.random(),
+            color=disnake.Color.random(),
         )
         embed.add_field(
             name="<:HP:916553886339309588>┃Health",
@@ -168,7 +168,7 @@ class Economy(commands.Cog):
         embed.add_field(name="▫️┃Gold Multiplier", value=f"{round(g_mult, 1)}x")
         embed.add_field(name="▫️┃XP Multiplier", value=f"{round(xp_mult, 1)}x")
 
-        embed.set_thumbnail(url=player.avatar_url)
+        embed.set_thumbnail(url=player.avatar.url)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["inv"])
@@ -195,10 +195,10 @@ class Economy(commands.Cog):
         for k, v in store.items():
             inventory += f"{k} {v}x\n"
 
-        em = discord.Embed(title="Your Inventory", color=discord.Colour.random())
+        em = disnake.Embed(title="Your Inventory", color=disnake.Colour.random())
         em.add_field(name="▫️┃Gold:", value=f"**{int(gold)}**", inline=False)
         em.add_field(name="📦┃Items:", value=f"**{inventory}**", inline=False)
-        em.set_thumbnail(url=ctx.author.avatar_url)
+        em.set_thumbnail(url=ctx.author.avatar.url)
 
         await ctx.send(embed=em)
 
@@ -227,15 +227,15 @@ class Economy(commands.Cog):
                     await self.bot.players.update_one(
                         {"_id": author.id}, {"$set": info}
                     )
-                    em = discord.Embed(
+                    em = disnake.Embed(
                         description=f"**You received your supporter gold! {int(goldget)} G**",
-                        color=discord.Color.blue(),
+                        color=disnake.Color.blue(),
                     )
                 else:
                     seconds = 86400 - delta
-                    em = discord.Embed(
+                    em = disnake.Embed(
                         description=f"**You can't claim your supporter reward yet!\n\n You can use this command again <t:{int(time.time()) + int(seconds)}:R>**",
-                        color=discord.Color.red(),
+                        color=disnake.Color.red(),
                     )
                 await ctx.send(embed=em)
                 break

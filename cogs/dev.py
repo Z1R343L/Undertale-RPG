@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 
 class Developer_Tools(commands.Cog):
@@ -10,7 +10,7 @@ class Developer_Tools(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def spit(self, ctx, member: discord.User = None):
+    async def spit(self, ctx, member: disnake.User = None):
         member = member or ctx.author
         info = await ctx.bot.players.find_one({"_id": member.id})
         await ctx.send(info)
@@ -41,11 +41,11 @@ class Developer_Tools(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def debug_dat(self, ctx, user: discord.User = None):
+    async def debug_dat(self, ctx, user: disnake.User = None):
         if user is None:
             return
         data = await self.bot.players.find_one({"_id": user.id})
-        embed = discord.Embed()
+        embed = disnake.Embed()
         for key in data:
             embed.add_field(name=key, value=data[key])
         await ctx.send(embed=embed)
@@ -55,7 +55,7 @@ class Developer_Tools(commands.Cog):
     async def in_fight(self, ctx):
         data = ctx.bot.fights
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title="list of people inside the fight flag",
             description=data
         )
@@ -66,7 +66,7 @@ class Developer_Tools(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def vanish(self, ctx, user: discord.User = None):
+    async def vanish(self, ctx, user: disnake.User = None):
         if user is None:
             return
         self.bot.players.delete_one({"_id": user.id})

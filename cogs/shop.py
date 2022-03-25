@@ -1,11 +1,11 @@
 import asyncio
 
-import discord
-from discord.ext import commands, tasks
+import disnake
+from disnake.ext import commands, tasks
 from dislash import *
 
-import botTools.loader as loader
-from botTools.dataIO import fileIO
+import utility.loader as loader
+from utility.dataIO import fileIO
 
 
 class Shop(commands.Cog):
@@ -90,10 +90,10 @@ class Shop(commands.Cog):
                 stored[value] = 1
                 return
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title="Shop",
             description="Welcome to the shop, selling!",
-            color=discord.Colour.random(),
+            color=disnake.Colour.random(),
         )
 
         rows = []
@@ -164,10 +164,10 @@ class Shop(commands.Cog):
                 if self.bot.items[i]["location"] == data["location"]:
                     items_list.append(i)
 
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 title="Shop",
                 description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
-                color=discord.Colour.random(),
+                color=disnake.Colour.random(),
             )
             rows = []
             lista = []
@@ -211,10 +211,10 @@ class Shop(commands.Cog):
                 incoming = await ctx.bot.players.find_one({"_id": ctx.author.id})
                 gold = incoming["gold"]
                 price = self.bot.items[inter.component.custom_id]["price"]
-                embed = discord.Embed(
+                embed = disnake.Embed(
                     title="Shop",
                     description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
-                    color=discord.Colour.random(),
+                    color=disnake.Colour.random(),
                 )
                 if incoming["gold"] < price:
                     if "```diff\n- Your gold is not enough\n```" not in embed.description:
@@ -237,10 +237,10 @@ class Shop(commands.Cog):
                 await self.bot.players.update_one(
                     {"_id": ctx.author.id}, {"$set": incoming}
                 )
-                emb = discord.Embed(
+                emb = disnake.Embed(
                     title="Shop",
                     description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
-                    color=discord.Colour.random(),
+                    color=disnake.Colour.random(),
                 )
                 embed.description += f"```diff\n+ Successfully bought {inter.component.custom_id}```"
                 await msg.edit(embed=emb)
@@ -288,10 +288,10 @@ class Shop(commands.Cog):
             for i in data["inventory"]:
                 items_list.append(i)
 
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 title="Inventory",
                 description="Welcome to your Inventory!",
-                color=discord.Colour.random(),
+                color=disnake.Colour.random(),
             )
 
             rows = []
@@ -364,10 +364,10 @@ class Shop(commands.Cog):
         determin = data["determination crate"]
         soul = data["soul crate"]
         void = data["void crate"]
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title="Your boxes",
             description="You can earn boxes by fighting, voting or defeating specific bosses",
-            color=discord.Colour.blue(),
+            color=disnake.Colour.blue(),
         )
         embed.add_field(
             name="Your boxes",

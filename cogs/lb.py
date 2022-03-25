@@ -1,6 +1,6 @@
-import discord
+import disnake
 import humanize
-from discord.ext import commands
+from disnake.ext import commands
 
 
 class Leaderboard(commands.Cog):
@@ -30,10 +30,10 @@ class Leaderboard(commands.Cog):
                 break
         output.append("")
         result = "\n".join(output)
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title=f"{arg} Leaderboard:",
             description=f"**{result}**",
-            color=discord.Colour.gold(),
+            color=disnake.Colour.gold(),
         )
         await ctx.send(embed=embed)
 
