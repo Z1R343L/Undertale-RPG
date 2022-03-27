@@ -274,7 +274,7 @@ class Items:
 
     async def armor(self, ctx, p1, p2, item):
         data = await ctx.bot.players.find_one({"_id": p1.id})
-        print(str(item))
+        print(item)
         data["inventory"].remove(item)
         data["inventory"].append(data["armor"])
 

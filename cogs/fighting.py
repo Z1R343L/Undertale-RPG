@@ -21,7 +21,6 @@ class battle:
     async def get_bar(health, max_health):
         bar0 = "<:0_:899376245496758343>"
         bar2 = "<:2_:899376429568000040>"
-        bar3 = "<:3_:899376559700451379>"
         bar4 = "<:4_:899376608220172339>"
         bar5 = "<:5_:899376657759088750>"
         bar = None
@@ -42,6 +41,7 @@ class battle:
         if 60 >= per > 50:
             bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
         if 70 >= per > 60:
+            bar3 = "<:3_:899376559700451379>"
             bar = f"{bar5}{bar5}{bar5}{bar3}{bar0}"
         if 80 >= per > 70:
             bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
@@ -556,12 +556,9 @@ class Fight(commands.Cog):
                         and ctx.invoked_with not in ctx.bot.cmd_list
                 ):
                     random_monster.append(i)
-                else:
-                    pass
-
         info = ctx.bot.monsters
 
-        if len(random_monster) == 0:
+        if not random_monster:
             await ctx.send(f"There are no monsters here?, Are you in an only boss area?, {ctx.prefix}boss")
             ctx.command.reset_cooldown(ctx)
             return

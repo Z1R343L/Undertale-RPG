@@ -16,17 +16,15 @@ class DataIO:
         """Atomically saves json file"""
         rnd = randint(1000, 9999)
         path, ext = os.path.splitext(filename)
-        tmp_file = "{}-{}.tmp".format(path, rnd)
+        tmp_file = f"{path}-{rnd}.tmp"
         self._save_json(tmp_file, data)
         try:
             self._read_json(tmp_file)
         except json.decoder.JSONDecodeError:
             self.logger.exception(
-                "Attempted to write file {} but JSON "
-                "integrity check on tmp file has failed. "
-                "The original file is unaltered."
-                "".format(filename)
+                f"Attempted to write file {filename} but JSON integrity check on tmp file has failed. The original file is unaltered."
             )
+
             return False
         os.replace(tmp_file, filename)
         return True
