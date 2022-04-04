@@ -49,7 +49,7 @@ class battle:
             for i in inter.bot.locations:
                 if inter.bot.locations[i]["RQ_LV"] == info["level"]:
                     await inter.send(
-                        f"Congrats, You unlocked {i}, you can go there by running {inter.prefix}travel"
+                        f"Congrats, You unlocked {i}, you can go there by running /travel"
                     )
             return await battle.check_levelup(self, inter)
         else:
@@ -473,7 +473,7 @@ class Fight(commands.Cog):
         info = inter.bot.monsters
 
         if len(random_monster) == 0:
-            await inter.send(f"There are no monsters here?, Are you in an only boss area?, {inter.prefix}boss")
+            await inter.send(f"There are no monsters here?, Are you in an only boss area?, /boss")
             #inter.command.reset_cooldown(inter)
             return
         monster = random.choice(random_monster)
