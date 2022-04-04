@@ -286,7 +286,7 @@ class Shop(commands.Cog):
                     lista.append(
                         Button(
                             label=f"{key.title()} {item[key]}",
-                            custom_id=key.lower(),
+                            custom_id=f"use:{key.lower()}:{inter.author.id}",
                             style=ButtonStyle.grey,
                         )
                     )
@@ -294,21 +294,7 @@ class Shop(commands.Cog):
             for i in range(0, len(lista), 5):
                 rows.append(ActionRow(*lista[i: i + 5]))
 
-            msg = await inter.send(embed=embed, components=rows)
-
-            on_click = msg.create_click_listener(timeout=120)
-
-            @on_click.not_from_user(inter.author, cancel_others=True, reset_timeout=False)
-            async def on_wrong_user(inter):
-                await inter.reply("This is not yours kiddo!", ephemeral=True)
-
-            @on_click.from_user(inter.author)
-            async def selected(inter):
-                on_click.kill()
-                selected_item = inter.component.custom_id
-                await msg.edit(components=[])
-                await getattr(Shop, self.bot.items[selected_item]["func"])(self, inter, selected_item)
-
+            await inter.send(embed=embed, components=rows)
             return
 
         item = item.lower()
@@ -326,6 +312,18 @@ class Shop(commands.Cog):
             await inter.send("You don't have this item in your inventory!")
             return
 
+        await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
+
+    @components.button_with_id(regex=r"use:(?P<item>\D+):(?P<uid>\d+)")
+    async def u_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
+        if inter.author.id != int(uid):
+            await inter.send('This is not your kiddo!', ephemeral=True)
+            return
+
+        await inter.response.defer()
+        msg = await inter.original_message()
+        new = await utils.disable_all(msg)
+        await inter.edit_original_message(components=[new])
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
     @commands.slash_command()
@@ -351,52 +349,58 @@ void crates: {void}
                               """,
         )
         row = ActionRow(
-            Button(style=ButtonStyle.grey, label="Standard Crate", custom_id="standard crate"),
             Button(
-                style=ButtonStyle.grey, label="Determination Crate", custom_id="determination crate"
+                style=ButtonStyle.grey, label="Standard Crate", custom_id=f"crate:standard crate:{inter.author.id}"
             ),
-            Button(style=ButtonStyle.grey, label="Soul Crate", custom_id="soul crate"),
-            Button(style=ButtonStyle.grey, label="Void Crate", custom_id="void crate"),
+            Button(
+                style=ButtonStyle.grey,
+                label="Determination Crate",
+                custom_id=f"crate:determination crate:{inter.author.id}"
+            ),
+            Button(
+                style=ButtonStyle.grey, label="Soul Crate", custom_id=f"crate:soul crate:{inter.author.id}"
+            ),
+            Button(
+                style=ButtonStyle.grey, label="Void Crate", custom_id=f"crate:void crate:{inter.author.id}"
+            ),
         )
         msg = await inter.send(embed=embed, components=[row])
 
-        on_click = msg.create_click_listener(timeout=30)
+    @components.button_with_id(regex=r"crate:(?P<item>\D+):(?P<uid>\d+)")
+    async def u_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
+        if inter.author.id != int(uid):
+            await inter.send('This is not your kiddo!', ephemeral=True)
+            return
 
-        @on_click.not_from_user(inter.author, cancel_others=True, reset_timeout=False)
-        async def on_wrong_user(inter):
-            await inter.reply("This is not yours kiddo!", ephemeral=True)
+        data = await inter.bot.players.find_one({"_id": inter.author.id})
+        await inter.response.defer()
 
-        @on_click.from_user(inter.author)
-        async def selected(inter):
-            on_click.kill()
-            item = inter.component.custom_id
-            if data[item] == 0:
-                return await msg.edit(
-                    content=f"You don't have any {item.title()}",
-                    embed=None,
-                    components=[],
-                )
-
-            await msg.edit(
-                content=f"{inter.author.mention} opened a {item.title()}...",
+        if data[item] == 0:
+            return await inter.edit_original_message(
+                content=f"You don't have any {item.title()}",
                 embed=None,
                 components=[],
             )
-            data[item] -= 1
-            earned_gold = inter.bot.crates[item]["gold"] + data["level"]
-            gold = data["gold"] + earned_gold
-            await asyncio.sleep(3)
-            await msg.edit(
-                content=f"{inter.author.mention} earned {earned_gold}G from a {item.title()}"
-            )
-            info = {
-                "gold": gold,
-                item: data[item]
-            }
-            return await inter.bot.players.update_one(
-                {"_id": inter.author.id}, {"$set": info}
-            )
 
+        await inter.edit_original_message(
+            content=f"{inter.author.mention} opened a {item.title()}...",
+            embed=None,
+            components=[],
+        )
+        data[item] -= 1
+        earned_gold = inter.bot.crates[item]["gold"] + data["level"]
+        gold = data["gold"] + earned_gold
+        await asyncio.sleep(3)
+        await inter.edit_original_message(
+            content=f"{inter.author.mention} earned {earned_gold}G from a {item.title()}"
+        )
+        info = {
+            "gold": gold,
+            item: data[item]
+        }
+        return await inter.bot.players.update_one(
+            {"_id": inter.author.id}, {"$set": info}
+        )
 
 def setup(bot):
     bot.add_cog(Shop(bot))
