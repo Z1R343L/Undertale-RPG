@@ -128,7 +128,7 @@ class Shop(commands.Cog):
         await inter.send(embed=embed, components=rows)
 
     @components.button_with_id(regex=r'sell:(?P<item>\D+):(?P<uid>\d+)')
-    async def selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
+    async def s_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
@@ -167,7 +167,7 @@ class Shop(commands.Cog):
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
         if len(data["inventory"]) >= 10:
-            await inter.send("Your carrying alot of items!")
+            await inter.send("You're carrying alot of items!")
             return
         if inter.author.id in inter.bot.fights:
             return
@@ -195,7 +195,7 @@ class Shop(commands.Cog):
                     Button(label=f"{item.title()} | {price} G", custom_id=f"shop:{item}:{inter.author.id}", style=ButtonStyle.grey)
                 )
         lista.append(
-            Button(label="⛔", custom_id=f"shutdown:{inter.author.id}", style=ButtonStyle.red))
+            Button(label="End Interaction", custom_id=f"shutdown:{inter.author.id}", style=ButtonStyle.red))
 
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
@@ -206,8 +206,6 @@ class Shop(commands.Cog):
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
-        await inter.response.defer()
-
         incoming = await inter.bot.players.find_one({"_id": inter.author.id})
         gold = incoming["gold"]
         price = self.bot.items[item]["price"]
@@ -216,14 +214,15 @@ class Shop(commands.Cog):
             description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
             color=disnake.Colour.random(),
         )
+        await inter.response.defer()
         if incoming["gold"] < price:
-            if "```diff\n- Your gold is not enough\n```" not in embed.description:
-                embed.description += "```diff\n- Your gold is not enough\n```"
+            if "```diff\n- You're gold is not enough\n```" not in embed.description:
+                embed.description += "```diff\n- You're gold is not enough\n```"
                 await inter.edit_original_message(embed=embed)
             return
         if len(incoming["inventory"]) >= 10:
-            if "```diff\n- Your carrying alot of items!\n```" not in embed.description:
-                embed.description += "```diff\n- Your carrying alot of items!\n```"
+            if "```diff\n- You're carrying alot of items!\n```" not in embed.description:
+                embed.description += "```diff\n- You're carrying alot of items!\n```"
             await inter.edit_original_message(embed=embed)
             return
         incoming["gold"] -= price
