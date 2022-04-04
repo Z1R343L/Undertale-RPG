@@ -2,7 +2,6 @@ import os
 
 import disnake
 from disnake.ext import commands
-from dislash import InteractionClient
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 

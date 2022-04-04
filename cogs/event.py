@@ -1,12 +1,9 @@
 import datetime
 import importlib
-import sys
-import traceback
 
-from disnake.ext import commands, tasks
+from disnake.ext import commands
 
 import utility.loader as loader
-from utility.utils import bcolors
 
 importlib.reload(loader)
 

@@ -7,7 +7,6 @@ from disnake.ext import commands
 
 import utility.loader as loader
 from utility.utils import get_bar
-import cogs.fighting as fighting
 
 importlib.reload(loader)
 

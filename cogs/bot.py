@@ -1,12 +1,10 @@
 import time
-from typing import Counter
 
 import aiohttp
 import disnake
 from disnake.ext import commands, tasks
 
 from utility.dataIO import fileIO
-from utility.loader import create_guild_info
 
 starttime = time.time()
 

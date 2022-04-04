@@ -1,6 +1,5 @@
 import asyncio
 import random
-import time
 
 import disnake
 from disnake.ext import commands, components
