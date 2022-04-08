@@ -105,7 +105,9 @@ class Bot(commands.Cog):
         )
         e.add_field(
             name="Invite Bot",
-            value="[Click Here](https://discord.com/api/oauth2/authorize?client_id=815153881217892372&permissions=388160&scope=bot)",
+            value=("[Click Here]"
+                "(https://discord.com/api/oauth2/authorize?client_id=815153881217892372&permissions=412421053760&scope="
+                   "bot%20applications.commands)"),
         )
 
         e.add_field(

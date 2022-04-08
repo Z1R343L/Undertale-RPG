@@ -6,11 +6,45 @@ import disnake
 from disnake.ext import commands
 
 import utility.loader as loader
-from utility.utils import get_bar
+from utility.utils import get_bar, disable_all
+
+from datetime import datetime
 
 importlib.reload(loader)
 
 starttime = time.time()
+
+class Choice(disnake.ui.View):
+    def __init__(self, author: disnake.Member):
+        super().__init__()
+        self.author = author
+        self.choice = None
+
+
+    @disnake.ui.button(label="Yes", style=disnake.ButtonStyle.green)
+    async def Yes(self, button, inter):
+        if inter.author != self.author:
+            return await inter.send("This is not yours kiddo!", ephemeral=True)
+        self.choice = True
+        await inter.response.defer()
+        msg = await inter.original_message()
+        row = await disable_all(msg)
+
+        await inter.edit_original_message(components=row)
+        self.stop()
+
+    @disnake.ui.button(label="No", style=disnake.ButtonStyle.red)
+    async def No(self, button, inter):
+        if inter.author != self.author:
+            return await inter.send("This is not yours kiddo!", ephemeral=True)
+        self.choice = False
+
+        await inter.response.defer()
+        msg = await inter.original_message()
+        row = await disable_all(msg)
+
+        await inter.edit_original_message(components=row)
+        self.stop()
 
 class Economy(commands.Cog):
     """Economy module and balance related"""
@@ -29,15 +63,30 @@ class Economy(commands.Cog):
             )
             return
 
-        await inter.send(
-            "Are you sure you want to proceed!\n\nYou will gain the ability to travel other dimension, and your gold and xp will be doubled each time you get some\n\n**Yes**\t\t\t\t**No**"
+        gold = round(old_data["multi_g"] + 0.4, 1)
+        xp = round(old_data["multi_xp"] + 0.2, 1)
+
+        embed = disnake.Embed(
+            title="Reseting your world.",
+            description=("Are you sure you want to proceed\nYour progress will vanish, but you will gain multipliers for gold and xp.\n\n"
+                         f"Your gold multiplier will be **{gold}x**"
+                         f"\nYour XP multiplier will be **{xp}x**"
+                         )
         )
-        answer = await self.bot.wait_for(
-            "message",
-            check=lambda m: m.author == inter.author and m.channel == inter.channel,
-            timeout=60,
+        embed.set_image(
+            "https://static.wikia.nocookie.net/xtaleunderverse4071/images/c/c4/UnderverseReset.jpg"
         )
-        if answer.content.lower() == "yes":
+        embed.set_thumbnail(inter.author.avatar.url)
+
+        embed.set_footer(text=datetime.utcnow(), icon_url=inter.bot.user.avatar.url)
+
+        embed.set_author(name=f"executed by {str(inter.author)}", icon_url=inter.author.avatar.url)
+        view = Choice(inter.author)
+        await inter.send(embed=embed, view=view)
+        await view.wait()
+
+
+        if view.choice:
             await self.bot.players.delete_one({"_id": inter.author.id})
             await loader.create_player_info(inter, inter.author)
             new_data = await self.bot.players.find_one({"_id": inter.author.id})
@@ -50,7 +99,7 @@ class Economy(commands.Cog):
             )
             await inter.send("You deleted your world, a new world appear in the horizon.")
         else:
-            await inter.send("You shall come back again!")
+            await inter.send("You should come back again!")
 
     @commands.slash_command()
     @commands.cooldown(1, 12, commands.BucketType.user)

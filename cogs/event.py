@@ -40,9 +40,11 @@ class Event(commands.Cog):
                 description=f"Try again in **{error.retry_after:.2f}** seconds",
                 color=disnake.Colour.red(),
             )
-            await inter.send(embed=embed, ephemeral=True)
+            return await inter.send(embed=embed, ephemeral=True)
+        raise error
 
-    @commands.Cog.listener()
+
+    # @commands.Cog.listener()
     async def on_message(self, message):
         if message.content in self.old_lst:
             embed = disnake.Embed(

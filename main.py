@@ -15,14 +15,6 @@ DEFUALT_DISABLED_MESSAGE = (
     "wait until its back up, you can join our support server to get notified once its backup."
 )
 
-CONCURRENCY_LIMITED_COMMANDS = {
-    "fight",
-    "f",
-    "boss",
-    "fboss",
-    "bossfight"
-}
-
 
 async def is_enabled(ctx):
     if ctx.author.id not in ctx.bot.owner_ids:
@@ -51,7 +43,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.vote_url = "https://top.gg/bot/815153881217892372"
         self.currency = "<:doge_coin:864929485295321110>"
         self.add_check(is_enabled)
-        self.activity = disnake.Game("Undertale | u?help ")
+        self.activity = disnake.Game("Undertale | /tutorial ")
         self.ENABLED = False
         self.help_command = None
         self.events = None

@@ -9,6 +9,7 @@ import utility.loader as loader
 from disnake.ui import Button, ActionRow
 
 from utility import utils
+import time
 
 
 class battle:
@@ -93,7 +94,7 @@ class battle:
         image = inter.bot.monsters[monster]["im"]
         embed.set_thumbnail(url=image)
 
-        msg = await inter.send(player.mention, embed=embed, components=buttons)
+        await inter.send(player.mention, embed=embed, components=buttons)
 
     async def attack(self, inter):
         try:
@@ -170,8 +171,8 @@ class battle:
                     info["selected_monster"] = None
                     info["monster_hp"] = 0
                     inter.bot.fights.remove(inter.author.id)
-                    # if inter.invoked_with in inter.bot.cmd_list:
-                    #     info["rest_block"] = time.time()
+                    if inter.data.name == "boss":
+                        info["rest_block"] = time.time()
 
                     info["gold"] = info["gold"] + gold
                     info["exp"] = info["exp"] + exp
@@ -256,7 +257,6 @@ class battle:
                     color=disnake.Colour.red(),
                 )
                 print(f"{inter.author} has ended the fight (Died)")
-                # inter.command.reset_cooldown(inter)
                 await inter.send(inter.author.mention, embed=femb)
                 return
             else:
@@ -405,8 +405,9 @@ class battle:
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
             )
             if sprfunc == "spared":
-                #if str(inter.invoked_with) in inter.bot.cmd_list:
-                    #info["rest_block"] = time.time()
+                if inter.data.name == "boss":
+                    info["rest_block"] = time.time()
+
                 info["selected_monster"] = None
                 inter.bot.fights.remove(inter.author.id)
                 print(f"{inter.author} has ended the fight (sparing)")
@@ -426,8 +427,83 @@ class battle:
 
 class Fight(commands.Cog):
 
-    def __init_(self, bot):
+    def __init__(self, bot):
         self.bot = bot
+
+    class Choose(disnake.ui.View):
+        def __init__(self, member: disnake.Member = None):
+            super().__init__()
+            self.choice = None
+            self.author = member
+
+
+        @disnake.ui.button(label="Boss", style=disnake.ButtonStyle.green, disabled=None)
+        async def boss(self, button: disnake.Button, inter: disnake.MessageInteraction):
+            if self.author == inter.author:
+                self.choice = "boss"
+                self.stop()
+                return
+
+        @disnake.ui.button(label="Monster", style=disnake.ButtonStyle.green)
+        async def monster(self,button: disnake.Button, inter:disnake.MessageInteraction):
+            if self.author == inter.author:
+                self.choice = "monster"
+                self.stop()
+                return
+
+    @commands.slash_command()
+    async def boss(self, inter):
+
+        if inter.author.id in inter.bot.fights:
+            return
+
+        await loader.create_player_info(inter, inter.author)
+        data = await inter.bot.players.find_one({"_id": inter.author.id})
+
+        curr_time = time.time()
+        delta = int(curr_time) - int(data["rest_block"])
+
+        if 1800.0 >= delta > 0:
+            seconds = 1800 - delta
+            em = disnake.Embed(
+                description=f"**You can't fight a boss yet!**\n\n**You can fight a boss <t:{int(time.time()) + int(seconds)}:R>**",
+                color=disnake.Color.red(),
+            )
+            em.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/850983850665836544/878024511302271056/image0.png"
+            )
+            await inter.send(embed=em)
+            return
+
+        location = data["location"]
+        random_monster = []
+
+        for i in inter.bot.monsters:
+            if inter.bot.monsters[i]["location"] == location:
+                if inter.bot.monsters[i]["boss"]:
+                    random_monster.append(i)
+                else:
+                    continue
+
+        monster = random.choice(random_monster)
+
+        info = inter.bot.monsters
+
+        mon_hp_min = info[monster]["min_hp"]
+        mon_hp_max = info[monster]["max_hp"]
+
+        enemy_hp = random.randint(mon_hp_min, mon_hp_max)
+
+        output = {
+            "selected_monster": monster,
+            "monster_hp": enemy_hp,
+            "last_monster": monster
+        }
+
+        await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
+        print(f"{inter.author} has entered a fight")
+        inter.bot.fights.append(inter.author.id)
+        return await battle.menu(self, inter, uid=inter.author.id)
 
     @commands.slash_command()
     async def fight(self, inter):
@@ -437,45 +513,24 @@ class Fight(commands.Cog):
 
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
-        """
-        if inter.invoked_with in inter.bot.cmd_list:
-            curr_time = time.time()
-            delta = int(curr_time) - int(data["rest_block"])
 
-            if 1800.0 >= delta > 0:
-                seconds = 1800 - delta
-                em = disnake.Embed(
-                    description=f"**You can't fight a boss yet!**\n\n**You can fight a boss <t:{int(time.time()) + int(seconds)}:R>**",
-                    color=disnake.Color.red(),
-                )
-                em.set_thumbnail(
-                    url="https://cdn.discordapp.com/attachments/850983850665836544/878024511302271056/image0.png"
-                )
-                await inter.send(embed=em)
-                inter.command.reset_cooldown(inter)
-                return
-        """
+
         location = data["location"]
         random_monster = []
 
         for i in inter.bot.monsters:
             if inter.bot.monsters[i]["location"] == location:
-                #if inter.bot.monsters[i]["boss"] and inter.invoked_with in inter.bot.cmd_list:
-                #    random_monster.append(i)
-                #elif (
-                #        inter.bot.monsters[i]["boss"] is False
-                #        and inter.invoked_with not in inter.bot.cmd_list
-                #):
+                if inter.bot.monsters[i]["boss"]:
+                    continue
+                else:
                     random_monster.append(i)
-                #else:
-                #    pass
 
         info = inter.bot.monsters
 
         if len(random_monster) == 0:
-            await inter.send(f"There are no monsters here?, Are you in an only boss area?, /boss")
-            #inter.command.reset_cooldown(inter)
+            await inter.send(f"There are no monsters here?, You are for sure inside a /boss area only!")
             return
+
         monster = random.choice(random_monster)
 
         mon_hp_min = info[monster]["min_hp"]
