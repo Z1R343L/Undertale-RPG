@@ -1,5 +1,5 @@
 python-dotenv~=0.19.2
-disnake
+git+https://github.com/DisnakeDev/disnake.git
 humanize~=4.0.0
 disnake-jishaku
 dblpy
