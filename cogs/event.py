@@ -49,7 +49,7 @@ class Event(commands.Cog):
         if message.content in self.old_lst:
             embed = disnake.Embed(
                 title="We have migrated to slash command!",
-                description=("discord has enforced migration to slash command at 2021 summer, on **april 31st 2022**"
+                description=("discord has enforced migration to slash command at 2021 summer, on **August 31st 2022**"
                              " all bots should be migrated on time, or they will no longer work\n\n use our bot with"
                              " the default prefix from now on, **/<command>**\n\n*look at the images below for "
                              "demonstration*"
