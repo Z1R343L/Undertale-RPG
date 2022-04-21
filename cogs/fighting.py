@@ -11,9 +11,24 @@ from disnake.ui import Button, ActionRow
 from utility import utils
 import time
 
-
 class battle:
-
+    def __init__(
+      self, 
+      author: disnake.Member,
+      bot: commands.AutoShardedBot, 
+      monster: str,
+      inter: disnake.CommandInteraction, 
+      kind: int,
+      channel: disnake.TextChannel
+    ) -> None:
+    
+        self.bot = bot
+        self.channel = channel
+        self.author = author
+        self.monster = monster
+        self.inter = inter
+        self.kind = kind  # 0 for monster, 1 for boss, 2 for special.
+        
     async def count(keys, value):
         try:
             keys[str(value)] = keys[value] + 1
@@ -21,9 +36,8 @@ class battle:
             keys[str(value)] = 1
             return
 
-    async def check_levelup(self, inter):
-        author = inter.author
-        info = await inter.bot.players.find_one({"_id": author.id})
+    async def check_levelup(self):
+        info = await self.bot.players.find_one({"_id": self.author.id})
         xp = info["exp"]
         num = 100
         lvl = info["level"]
@@ -40,77 +54,75 @@ class battle:
                 "max_health": info["max_health"] + 4,
                 "damage": info["damage"] + 1
             }
-            await inter.bot.players.update_one({"_id": author.id}, {"$set": data})
+            await self.bot.players.update_one({"_id": author.id}, {"$set": data})
             embed = disnake.Embed(
                 title="LOVE Increased",
                 description=f"Your LOVE Increased to **{new_lvl}**\nDamage increased to {new_dmg}",
                 color=disnake.Colour.red(),
             )
-            await inter.send(inter.author.mention, embed=embed)
-            for i in inter.bot.locations:
-                if inter.bot.locations[i]["RQ_LV"] == info["level"]:
-                    await inter.send(
+            await self.channel.send(inter.author.mention, embed=embed)
+            for i in self.bot.locations:
+                if self.bot.locations[i]["RQ_LV"] == info["level"]:
+                    await self.channel.send(
                         f"Congrats, You unlocked {i}, you can go there by running /travel"
                     )
-            return await battle.check_levelup(self, inter)
+            return await self.check_levelup()
         else:
             return
 
-    async def menu(self, inter, uid):
+    async def menu(self):
 
-        player = inter.author
-
-        info = await inter.bot.players.find_one({"_id": player.id})
+        info = await self.bot.players.find_one({"_id": self.author.id})
 
         buttons = [
             disnake.ui.Button(
                 style=disnake.ButtonStyle.red,
                 label='Fight',
-                custom_id=f"fight:{uid}"
+                custom_id=Fight.action.build_custom_id(action="attack", uid=self.author.id)
             ),
             disnake.ui.Button(
                 style=disnake.ButtonStyle.gray,
                 label='Items',
-                custom_id=f"items:{uid}"
+                custom_id=Fight.action.build_custom_id(action="use", uid=self.author.id)
             ),
             disnake.ui.Button(
                 style=disnake.ButtonStyle.green,
                 label='Mercy',
-                custom_id=f"spare:{uid}"
+                custom_id=Fight.action.build_custom_id(action="spare" ,uid=self.author.id)
             ),
         ]
 
         health = info["health"]
-        monster = info["selected_monster"]
-        title = inter.bot.monsters[monster]["title"]
+        monster = self.monster
+        title = self.bot.monsters[monster]["title"]
         enemy_hp = info["monster_hp"]
-        damage = inter.bot.monsters[monster]["atk"]
+        damage = self.bot.monsters[monster]["atk"]
 
         embed = disnake.Embed(
             title=f"{monster}, {title}",
             description=f"**Your HP is {health}\nMonster health: {enemy_hp}HP\ncan deal up to {damage}ATK**",
             color=disnake.Colour.blue()
         )
-        image = inter.bot.monsters[monster]["im"]
+        image = self.bot.monsters[monster]["im"]
         embed.set_thumbnail(url=image)
 
-        await inter.send(player.mention, embed=embed, components=buttons)
+        await self.inter.send(self.author.mention, embed=embed, components=buttons)
 
-    async def attack(self, inter):
+    async def attack(self):
         try:
-            event = inter.bot.events
-            data = inter.bot.monsters
-            author = inter.author
-            info = await inter.bot.players.find_one({"_id": author.id})
+            event = self.bot.events
+            data = self.bot.monsters
+            author = self.author
+            info = await self.bot.players.find_one({"_id": self.author.id})
             user_wep = info["weapon"]
-            monster = info["selected_monster"]
+            monster = self.monster
             if monster is None:
                 monster = info["last_monster"]
             damage = info["damage"]
             enemy_hp = info["monster_hp"]
 
-            min_dmg = inter.bot.items[user_wep]["min_dmg"]
-            max_dmg = inter.bot.items[user_wep]["max_dmg"]
+            min_dmg = self.bot.items[user_wep]["min_dmg"]
+            max_dmg = self.bot.items[user_wep]["max_dmg"]
             enemy_min_gold = data[monster]["min_gold"]
             enemy_max_gold = data[monster]["max_gold"]
             enemy_xp_min = data[monster]["min_xp"]
@@ -126,9 +138,9 @@ class battle:
 
             if dodge_chance in [5, 9]:
                 atem.description = f"**{monster}** Dodged the attack!"
-                await inter.send(inter.author.mention, embed=atem)
+                await self.channel.send(self.author.mention, embed=atem)
                 await asyncio.sleep(3)
-                await battle.counter_attack(self, inter)
+                await self.counter_attack()
             else:
                 # player attack
                 damage = int(user_dmg) + int(damage)
@@ -138,7 +150,7 @@ class battle:
                 atem.set_thumbnail(
                     url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
                 )
-                await inter.send(inter.author.mention, embed=atem)
+                await self.channel.send(self.author.mention, embed=atem)
                 if enemy_hp_after <= 0:
                     await asyncio.sleep(1)
                     embed = disnake.Embed(
@@ -170,50 +182,52 @@ class battle:
 
                     info["selected_monster"] = None
                     info["monster_hp"] = 0
-                    inter.bot.fights.remove(inter.author.id)
-                    if inter.data.name == "boss":
+                    del self.bot.fights[str(self.author.id)]
+                    self.bot.fights.pop(str(inter.author.id))
+                    if self.kind == 1:
                         info["rest_block"] = time.time()
 
                     info["gold"] = info["gold"] + gold
                     info["exp"] = info["exp"] + exp
 
-                    if len(inter.bot.monsters[monster]["loot"]) > 0:
+                    if len(self.bot.monsters[monster]["loot"]) > 0:
                         num = random.randint(0, 6)
-                        crate = inter.bot.monsters[monster]["loot"][0]
+                        crate = self.bot.monsters[monster]["loot"][0]
                         if num < 2:
                             info[crate] += 1
                             embed.description += (
                                 f"\n\n**You got a {crate}, check u?crate command**"
                             )
                     info["kills"] = info["kills"] + 1
-                    await inter.bot.players.update_one({"_id": author.id}, {"$set": info})
-                    await battle.check_levelup(self, inter)
-                    await inter.send(embed=embed)
-                    print(f"{inter.author} has ended the fight")
+                    await self.bot.players.update_one({"_id": author.id}, {"$set": info})
+                    await self.check_levelup()
+                    await self.channel.send(embed=embed)
+                    print(f"{self.author} has ended the fight")
                 else:
                     info["monster_hp"] = enemy_hp_after
-                    await inter.bot.players.update_one({"_id": author.id}, {"$set": info})
+                    await self.bot.players.update_one({"_id": author.id}, {"$set": info})
                     await asyncio.sleep(2)
-                    return await battle.counter_attack(self, inter)
+                    return await self.counter_attack()
 
             return
         except Exception as e:
-            inter.bot.fights.remove(inter.author.id)
-            await inter.bot.get_channel(827651947678269510).send(e)
+            del self.bot.fights[str(self.author.id)]
+            self.bot.fights.pop(str(inter.author.id))
+            await self.bot.get_channel(827651947678269510).send(e)
 
-    async def counter_attack(self, inter):
+    async def counter_attack(self):
         try:
-            author = inter.author
-            data = inter.bot.monsters
+            author = self.author
+            data = self.bot.monsters
 
-            info = await inter.bot.players.find_one({"_id": inter.author.id})
-            enemy_define = info["selected_monster"]
+            info = await self.bot.players.find_one({"_id": self.author.id})
+            enemy_define = self.monster
             if enemy_define is None:
                 enemy_define = info["last_monster"]
             enemy_dmg = data[enemy_define]["atk"]
             user_ar = info["armor"].lower()
-            min_dfs = inter.bot.items[user_ar]["min_dfs"]
-            max_dfs = inter.bot.items[user_ar]["max_dfs"]
+            min_dfs = self.bot.items[user_ar]["min_dfs"]
+            max_dfs = self.bot.items[user_ar]["max_dfs"]
             user_dfs = random.randint(min_dfs, max_dfs)
             user_hp = info["health"]
             user_max_hp = info["max_health"]
@@ -226,10 +240,10 @@ class battle:
             atem = disnake.Embed(title=f"{enemy_define} Attacks")
 
             if dodge_chance >= 9:
-                atem.description = f"**{inter.author.name}** Dodged the attack!"
-                await inter.send(inter.author.mention, embed=atem)
+                atem.description = f"**{self.author.name}** Dodged the attack!"
+                await self.channel.send(self.author.mention, embed=atem)
                 await asyncio.sleep(3)
-                return await battle.menu(self, inter, uid=inter.author.id)
+                return await self.menu()
 
             user_hp_after = int(user_hp) - int(enemy_dmg)
             gold_lost = random.randint(10, 40) + info["level"]
@@ -238,17 +252,18 @@ class battle:
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
             )
             await asyncio.sleep(2)
-            await inter.send(inter.author.mention, embed=atem)
+            await self.channel.send(self.author.mention, embed=atem)
 
             if user_hp_after <= 0:
                 info["gold"] = info["gold"] - gold_lost
                 info["gold"] = max(info["gold"], 0)
                 info["deaths"] = info["deaths"] + 1
                 info["health"] = 10
-                inter.bot.fights.remove(inter.author.id)
+                del self.bot.fights[self.author.id]
+                self.bot.fights.pop(str(inter.author.id))
                 info["selected_monster"] = None
                 info["monster_hp"] = 0
-                await inter.bot.players.update_one({"_id": author.id}, {"$set": info})
+                await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
 
                 await asyncio.sleep(3)
                 femb = disnake.Embed(
@@ -256,79 +271,83 @@ class battle:
                     description=f"**Stay Determines please!, You lost {gold_lost} G**",
                     color=disnake.Colour.red(),
                 )
-                print(f"{inter.author} has ended the fight (Died)")
-                await inter.send(inter.author.mention, embed=femb)
+                print(f"{self.author} has ended the fight (Died)")
+                await self.channel.send(self.author.mention, embed=femb)
                 return
             else:
                 info["health"] = user_hp_after
-                await inter.bot.players.update_one({"_id": author.id}, {"$set": info})
+                await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
                 await asyncio.sleep(3)
-                return await battle.menu(self, inter, uid=inter.author.id)
+                return await self.menu()
         except Exception as e:
-            inter.bot.fights.remove(inter.author.id)
-            await inter.bot.get_channel(827651947678269510).send(e)
+            del self.bot.fights[str(self.author.id)]
+            self.bot.fights.pop(str(inter.author.id))
+            await self.bot.get_channel(827651947678269510).send(e)
 
-    async def weapon(self, inter, item):
+    async def weapon(self, item):
         try:
-            data = await inter.bot.players.find_one({"_id": inter.author.id})
+            data = await self.bot.players.find_one({"_id": self.author.id})
             data["inventory"].remove(item)
             data["inventory"].append(data["weapon"])
             data["weapon"] = item
-            await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-            await inter.send(f"Successfully equipped {item.title()}")
+            await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
+            await self.channel.send(f"Successfully equipped {item.title()}")
 
-            return await battle.counter_attack(self, inter)
+            return await self.counter_attack(self)
         except Exception as e:
-            inter.bot.fights.remove(inter.author.id)
-            await inter.bot.get_channel(827651947678269510).send(e)
+            del self.bot.fights[str(self.author.id)]
+            self.bot.fights.pop(str(inter.author.id))
+            await self.bot.get_channel(827651947678269510).send(e)
 
-    async def armor(self, inter, item):
+    async def armor(self, item):
         try:
 
-            data = await inter.bot.players.find_one({"_id": inter.author.id})
+            data = await self.bot.players.find_one({"_id": self.author.id})
             data["inventory"].remove(item)
             data["inventory"].append(data["armor"])
 
             data["armor"] = item
-            await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-            await inter.send(f"Successfully equipped {item.title()}")
+            await self.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
+            await self.send(f"Successfully equipped {item.title()}")
 
-            return await battle.counter_attack(self, inter)
+            return await self.counter_attack()
 
         except Exception as e:
-            inter.bot.fights.remove(inter.author.id)
-            await inter.bot.get_channel(827651947678269510).send(e)
+            del self.bot.fights[self.author.id]
+            self.bot.fights.pop(str(inter.author.id))
+            await self.bot.get_channel(827651947678269510).send(e)
 
-    async def food(self, inter, item):
+    async def food(self, item):
         try:
-            data = await inter.bot.players.find_one({"_id": inter.author.id})
+            data = await self.bot.players.find_one({"_id": self.author.id})
             data["inventory"].remove(item)
-            heal = inter.bot.items[item]["HP"]
+            heal = self.bot.items[item]["HP"]
             data["health"] += heal
 
             if data["health"] >= data["max_health"]:
                 data["health"] = data["max_health"]
-                await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-                await inter.send("Your health maxed out")
-                return await battle.counter_attack(self, inter)
+                await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
+                await self.channel.send("Your health maxed out")
+                return await self.counter_attack(self)
             health = data["health"]
-            await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-            await inter.send(
+            await inter.bot.players.update_one({"_id": self.author.id}, {"$set": data})
+            await self.channel.send(
                 f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
             )
-            return await battle.counter_attack(self, inter)
+            return await self.counter_attack()
 
         except Exception as e:
-            inter.bot.fights.remove(inter.author.id)
-            await inter.bot.get_channel(827651947678269510).send(e)
+            del self.bot.fights[self.author.id]
+            self.bot.fights.pop(str(inter.author.id))
+            await self.bot.get_channel(827651947678269510).send(e)
 
-    async def use(self, inter):
+    async def use(self):
         #try:
-            await loader.create_player_info(inter, inter.author)
-            data = await inter.bot.players.find_one({"_id": inter.author.id})
+            await loader.create_player_info(self.inter, self.author)
+            data = await self.bot.players.find_one({"_id": self.author.id})
             if len(data["inventory"]) == 0:
-                await inter.send("You have nothing to use")
-                return await battle.counter_attack(self, inter)
+                await self.channel.send(f"{self.author.mention} You have nothing to use")
+                return await battle.counter_attack()
 
             items_list = []
             for i in data["inventory"]:
@@ -345,7 +364,7 @@ class battle:
             inventory = []
             keys = {}
             for data in data["inventory"]:
-                await battle.count(keys, data)
+                await self.count(keys, data)
             for k, v in keys.items():
                 inventory.append({f"{k}": f"{v}x"})
             for item in inventory:
@@ -353,7 +372,7 @@ class battle:
                     lista.append(
                         Button(
                             label=f"{key.title()} {item[key]}",
-                            custom_id=f"food:{key.lower()}:{inter.author.id}",
+                            custom_id=Fight.food.build_custom_id(item=key.lower(), author=self.author),
                             style=ButtonStyle.grey
                         )
                     )
@@ -361,11 +380,11 @@ class battle:
             for i in range(0, len(lista), 5):
                 rows.append(ActionRow(*lista[i: i + 5]))
 
-            await inter.send(embed=embed, components=rows)
+            await self.channel.send(embed=embed, components=rows)
 
-    async def spare(self, inter):
+    async def spare(self):
         try:
-            info = await inter.bot.players.find_one({"_id": inter.author.id})
+            info = await self.bot.players.find_one({"_id": self.author.id})
             monster = info["selected_monster"]
             if monster is None:
                 monster = info["last_monster"]
@@ -375,7 +394,7 @@ class battle:
                     "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
                 )
                 info["selected_monster"] = None
-                inter.bot.fights.remove(inter.author.id)
+                self.bot.fights.remove(self.author.id)
                 info["health"] = 10
                 # if str(inter.invoked_with) == "fboss":
                 #     info["rest_block"] = time.time()
@@ -391,7 +410,7 @@ class battle:
             embed1.set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
             )
-            msg = await inter.channel.send(embed=embed1)
+            msg = await self.channel.send(self.author.mention, embed=embed1)
             await asyncio.sleep(5)
             embed2 = disnake.Embed(
                 title="Mercy", description="They didn't accepted your mercy"
@@ -405,24 +424,25 @@ class battle:
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803887253927100436/image0.png"
             )
             if sprfunc == "spared":
-                if inter.data.name == "boss":
+                if self.kind == 1:
                     info["rest_block"] = time.time()
 
                 info["selected_monster"] = None
-                inter.bot.fights.remove(inter.author.id)
-                print(f"{inter.author} has ended the fight (sparing)")
+                self.bot.fights.remove(inter.author.id)
+                print(f"{self.author} has ended the fight (sparing)")
                 # inter.command.reset_cooldown(inter)
                 await msg.edit(embed=embed3)
-                await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": info})
+                await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
             elif sprfunc == "NotSpared":
                 await msg.edit(embed=embed2)
 
                 await asyncio.sleep(4)
-                await battle.counter_attack(self, inter)
+                await self.counter_attack()
 
         except Exception as e:
-            inter.bot.fights.remove(inter.author.id)
-            await inter.bot.get_channel(827651947678269510).send(e)
+            del self.bot.fights[self.author.id]
+            self.bot.fights.pop(str(inter.author.id))
+            await self.bot.get_channel(827651947678269510).send(e)
 
 
 class Fight(commands.Cog):
@@ -450,11 +470,41 @@ class Fight(commands.Cog):
                 self.choice = "monster"
                 self.stop()
                 return
+            
+    @components.component_listener()
+    async def food(self, inter: disnake.MessageInteraction, item: str, author: disnake.Member) -> None:
+        if inter.author != author:
+            await inter.send('This is not yours kiddo!', ephemeral=True)
+            return
+
+        await inter.response.defer()
+
+        msg = await inter.original_message()
+        row = await utils.disable_all(msg)
+
+        await inter.edit_original_message(components=row)
+
+        return await getattr(battle, inter.bot.items[item]["func"])(self, inter, item)
+            
+    @components.component_listener()
+    async def action(self, inter: disnake.MessageInteraction, action: str, uid: int) -> None:
+        if inter.author.id != uid:
+            await inter.send('This is not yours kiddo!', ephemeral=True)
+            return
+
+        await inter.response.defer()
+        msg = await inter.original_message()
+        row = await utils.disable_all(msg)
+
+        await inter.edit_original_message(components=row)
+        
+        return await getattr(inter.bot.fights[str(uid)], action)()
+
 
     @commands.slash_command()
     async def boss(self, inter):
 
-        if inter.author.id in inter.bot.fights:
+        if str(inter.author.id) in inter.bot.fights:
             return
 
         await loader.create_player_info(inter, inter.author)
@@ -503,7 +553,8 @@ class Fight(commands.Cog):
         await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a fight")
         inter.bot.fights.append(inter.author.id)
-        return await battle.menu(self, inter, uid=inter.author.id)
+        fight = battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
+        return await fight.menu()
 
     @commands.slash_command()
     async def fight(self, inter):
@@ -546,63 +597,9 @@ class Fight(commands.Cog):
 
         await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a fight")
-        inter.bot.fights.append(inter.author.id)
-        return await battle.menu(self, inter, uid=inter.author.id)
-
-    @components.button_with_id(regex=r'fight:(?P<uid>\d+)')
-    async def f_b(self, inter: disnake.MessageInteraction, uid: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('This is not your kiddo!', ephemeral=True)
-            return
-
-        await inter.response.defer()
-        msg = await inter.original_message()
-        row = await utils.disable_all(msg)
-
-        await inter.edit_original_message(components=row)
-        return await battle.attack(self, inter)
-
-    @components.button_with_id(regex=r'items:(?P<uid>\d+)')
-    async def i_b(self, inter: disnake.MessageInteraction, uid: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('This is not your kiddo!', ephemeral=True)
-            return
-
-        await inter.response.defer()
-
-        msg = await inter.original_message()
-        row = await utils.disable_all(msg)
-
-        await inter.edit_original_message(components=row)
-        return await battle.use(self, inter)
-
-    @components.button_with_id(regex=r'spare:(?P<uid>\d+)')
-    async def m_b(self, inter: disnake.MessageInteraction, uid: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('This is not your kiddo!', ephemeral=True)
-            return
-
-        await inter.response.defer()
-        msg = await inter.original_message()
-        row = await utils.disable_all(msg)
-
-        await inter.edit_original_message(components=row)
-        return await battle.spare(self, inter)
-
-    @components.button_with_id(regex=r'food:(?P<item>\D+):(?P<uid>\d+)')
-    async def fr_b(self, inter: disnake.MessageInteraction, uid: str, item: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('This is not your kiddo!', ephemeral=True)
-            return
-
-        await inter.response.defer()
-
-        msg = await inter.original_message()
-        row = await utils.disable_all(msg)
-
-        await inter.edit_original_message(components=row)
-
-        return await getattr(battle, inter.bot.items[item]["func"])(self, inter, item)
+        fight = battle(inter.author, inter.bot, monster, inter, 0, inter.channel)
+        inter.bot.fights[str(inter.author.id)] = fight
+        return await fight.menu()
 
 def setup(bot):
     bot.add_cog(Fight(bot))

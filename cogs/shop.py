@@ -127,7 +127,7 @@ class Shop(commands.Cog):
 
         await inter.send(embed=embed, components=rows)
 
-    @components.button_with_id(regex=r'sell:(?P<item>\D+):(?P<uid>\d+)')
+    #@components.button_with_id(regex=r'sell:(?P<item>\D+):(?P<uid>\d+)')
     async def s_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -150,7 +150,7 @@ class Shop(commands.Cog):
 
         await inter.send(f"You sold {item} for {round(returned, 1)} G")
 
-    @components.button_with_id(regex=r'shutdown:(?P<uid>\d+)')
+    #@components.button_with_id(regex=r'shutdown:(?P<uid>\d+)')
     async def shutdown(self, inter: disnake.MessageInteraction, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -201,7 +201,7 @@ class Shop(commands.Cog):
             rows.append(ActionRow(*lista[i: i + 5]))
         await inter.send(embed=embed, components=rows)
 
-    @components.button_with_id(regex=r'shop:(?P<item>\D+):(?P<uid>\d+)')
+    #@components.button_with_id(regex=r'shop:(?P<item>\D+):(?P<uid>\d+)')
     async def selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -314,7 +314,7 @@ class Shop(commands.Cog):
 
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
-    @components.button_with_id(regex=r"use:(?P<item>\D+):(?P<uid>\d+)")
+    #@components.button_with_id(regex=r"use:(?P<item>\D+):(?P<uid>\d+)")
     async def u_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -366,7 +366,7 @@ void crates: {void}
         )
         msg = await inter.send(embed=embed, components=[row])
 
-    @components.button_with_id(regex=r"crate:(?P<item>\D+):(?P<uid>\d+)")
+    #@components.button_with_id(regex=r"crate:(?P<item>\D+):(?P<uid>\d+)")
     async def u_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)

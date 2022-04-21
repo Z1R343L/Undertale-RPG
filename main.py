@@ -48,7 +48,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.help_command = None
         self.events = None
         self.cmd_list = ["fboss", "bossfight", "boss"]
-        self.fights = []
+        self.fights = {}
 
     async def on_shard_connect(self, shard):
         print(f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN} is connected.{bcolors.ENDC}")
@@ -82,13 +82,7 @@ class UndertaleBot(commands.AutoShardedBot):
 
 
 async def determine_prefix(UT, message):
-    if bot.ENABLED is False:
-        return "u?"
-    if message.guild:
-        data = await _create_guild_info(UT, message.guild)
-        return data["prefix"]
-    return "u?"
-
+    return "u!"
 
 bot = UndertaleBot(
     command_prefix=determine_prefix,

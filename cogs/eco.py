@@ -130,7 +130,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.slash_command(aliases=["bal", "balance"])
+    @commands.slash_command()
     @commands.cooldown(1, 7, commands.BucketType.user)
     async def gold(self, inter):
         """Check your gold balance"""
@@ -144,11 +144,14 @@ class Economy(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.slash_command(aliases=["level", "progress", "lvl", "stat", "profile"])
+    @commands.slash_command()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def stats(self, inter, member: disnake.User = None):
         """Check your stats and powers"""
         player = member or inter.author
+        if player.bot:
+          await inter.send("Nice try!", ephemeral=True)
+          return
         await loader.create_player_info(inter, player)
         info = await self.bot.players.find_one({"_id": player.id})
 
@@ -220,7 +223,7 @@ class Economy(commands.Cog):
         embed.set_thumbnail(url=player.avatar.url)
         await inter.send(embed=embed)
 
-    @commands.slash_command(aliases=["inv"])
+    @commands.slash_command()
     async def inventory(self, inter):
         """Shows your inventory"""
         author = inter.author
@@ -251,7 +254,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.slash_command(aliases=["sp"])
+    @commands.slash_command()
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def supporter(self, inter):
         """Join our support server and claim a bunch of gold"""

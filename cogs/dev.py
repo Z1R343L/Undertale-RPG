@@ -17,7 +17,7 @@ class Developer_Tools(commands.Cog):
 
     @commands.slash_command()
     @commands.is_owner()
-    async def Fix(self, inter):
+    async def fix(self, inter):
         """Fix, duh?"""
         await inter.send("Fixing")
         data = self.bot.players.find()
