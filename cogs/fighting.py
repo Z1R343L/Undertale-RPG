@@ -60,7 +60,7 @@ class battle:
                 description=f"Your LOVE Increased to **{new_lvl}**\nDamage increased to {new_dmg}",
                 color=disnake.Colour.red(),
             )
-            await self.channel.send(inter.author.mention, embed=embed)
+            await self.channel.send(self.author.mention, embed=embed)
             for i in self.bot.locations:
                 if self.bot.locations[i]["RQ_LV"] == info["level"]:
                     await self.channel.send(
