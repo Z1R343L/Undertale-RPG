@@ -344,7 +344,8 @@ class battle:
             data = await self.bot.players.find_one({"_id": self.author.id})
             if len(data["inventory"]) == 0:
                 await self.channel.send(f"{self.author.mention} You have nothing to use")
-                return await battle.menu()
+                await asyncio.sleep(3)
+                return await self.menu()
 
             items_list = []
             for i in data["inventory"]:
@@ -374,6 +375,14 @@ class battle:
                         )
                     )
 
+            lista.append(
+              Button(label=f"Return", 
+                   custom_id=Fight.food.build_custom_id(
+                     item="back",
+                     uid=self.author.id),
+                   style=ButtonStyle.green
+                        )
+            )
             for i in range(0, len(lista), 5):
                 rows.append(ActionRow(*lista[i: i + 5]))
 
@@ -452,6 +461,8 @@ class Fight(commands.Cog):
             return
 
         await inter.response.defer()
+        if item == "back":
+             return await inter.bot.fights[str(uid)].menu()
 
         msg = await inter.original_message()
         row = await utils.disable_all(msg)
