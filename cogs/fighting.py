@@ -36,6 +36,10 @@ class battle:
             keys[str(value)] = 1
             return
 
+    # ending the fight with the id
+    async def end(self):
+      del self.bot.fights[str(self.author.id)]
+
     async def check_levelup(self):
         info = await self.bot.players.find_one({"_id": self.author.id})
         xp = info["exp"]
@@ -182,8 +186,6 @@ class battle:
 
                     info["selected_monster"] = None
                     info["monster_hp"] = 0
-                    del self.bot.fights[str(self.author.id)]
-                    self.bot.fights.pop(str(inter.author.id))
                     if self.kind == 1:
                         info["rest_block"] = time.time()
 
@@ -203,6 +205,7 @@ class battle:
                     await self.check_levelup()
                     await self.channel.send(embed=embed)
                     print(f"{self.author} has ended the fight")
+                    return await self.end()
                 else:
                     info["monster_hp"] = enemy_hp_after
                     await self.bot.players.update_one({"_id": author.id}, {"$set": info})
@@ -211,12 +214,11 @@ class battle:
 
             return
         except Exception as e:
-            del self.bot.fights[str(self.author.id)]
-            self.bot.fights.pop(str(inter.author.id))
             await self.bot.get_channel(827651947678269510).send(e)
+            await self.end()
 
     async def counter_attack(self):
-        try:
+        #try:
             author = self.author
             data = self.bot.monsters
 
@@ -259,8 +261,6 @@ class battle:
                 info["gold"] = max(info["gold"], 0)
                 info["deaths"] = info["deaths"] + 1
                 info["health"] = 10
-                del self.bot.fights[self.author.id]
-                self.bot.fights.pop(str(inter.author.id))
                 info["selected_monster"] = None
                 info["monster_hp"] = 0
                 await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
@@ -273,16 +273,16 @@ class battle:
                 )
                 print(f"{self.author} has ended the fight (Died)")
                 await self.channel.send(self.author.mention, embed=femb)
-                return
+                return await self.end()
             else:
                 info["health"] = user_hp_after
                 await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
                 await asyncio.sleep(3)
                 return await self.menu()
-        except Exception as e:
-            del self.bot.fights[str(self.author.id)]
-            self.bot.fights.pop(str(inter.author.id))
-            await self.bot.get_channel(827651947678269510).send(e)
+              
+        #except Exception as e:
+            #await self.bot.get_channel(827651947678269510).send(e)
+            #await self.end()
 
     async def weapon(self, item):
         try:
@@ -295,9 +295,8 @@ class battle:
 
             return await self.counter_attack(self)
         except Exception as e:
-            del self.bot.fights[str(self.author.id)]
-            self.bot.fights.pop(str(inter.author.id))
             await self.bot.get_channel(827651947678269510).send(e)
+            await self.end()
 
     async def armor(self, item):
         try:
@@ -313,9 +312,8 @@ class battle:
             return await self.counter_attack()
 
         except Exception as e:
-            del self.bot.fights[self.author.id]
-            self.bot.fights.pop(str(inter.author.id))
             await self.bot.get_channel(827651947678269510).send(e)
+            await self.end()
 
     async def food(self, item):
         try:
@@ -337,10 +335,8 @@ class battle:
             return await self.counter_attack()
 
         except Exception as e:
-            del self.bot.fights[self.author.id]
-            self.bot.fights.pop(str(inter.author.id))
             await self.bot.get_channel(827651947678269510).send(e)
-
+            await self.end()
     async def use(self):
         #try:
             await loader.create_player_info(self.inter, self.author)
@@ -428,11 +424,11 @@ class battle:
                     info["rest_block"] = time.time()
 
                 info["selected_monster"] = None
-                self.bot.fights.remove(inter.author.id)
                 print(f"{self.author} has ended the fight (sparing)")
                 # inter.command.reset_cooldown(inter)
                 await msg.edit(embed=embed3)
                 await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
+                await self.end()
             elif sprfunc == "NotSpared":
                 await msg.edit(embed=embed2)
 
@@ -440,9 +436,8 @@ class battle:
                 await self.counter_attack()
 
         except Exception as e:
-            del self.bot.fights[self.author.id]
-            self.bot.fights.pop(str(inter.author.id))
             await self.bot.get_channel(827651947678269510).send(e)
+            await self.end()
 
 
 class Fight(commands.Cog):
@@ -598,7 +593,7 @@ class Fight(commands.Cog):
         await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a fight")
         fight = battle(inter.author, inter.bot, monster, inter, 0, inter.channel)
-        inter.bot.fights[str(inter.author.id)] = fight
+        fight.bot.fights[str(inter.author.id)] = fight
         return await fight.menu()
 
 def setup(bot):
