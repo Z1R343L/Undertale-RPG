@@ -29,7 +29,7 @@ class battle:
         self.inter = inter
         self.kind = kind  # 0 for monster, 1 for boss, 2 for special.
         
-    async def count(keys, value):
+    async def count(self, keys, value):
         try:
             keys[str(value)] = keys[value] + 1
         except KeyError:
@@ -337,13 +337,14 @@ class battle:
         except Exception as e:
             await self.bot.get_channel(827651947678269510).send(e)
             await self.end()
+          
     async def use(self):
         #try:
             await loader.create_player_info(self.inter, self.author)
             data = await self.bot.players.find_one({"_id": self.author.id})
             if len(data["inventory"]) == 0:
                 await self.channel.send(f"{self.author.mention} You have nothing to use")
-                return await battle.counter_attack()
+                return await battle.menu()
 
             items_list = []
             for i in data["inventory"]:
@@ -368,7 +369,7 @@ class battle:
                     lista.append(
                         Button(
                             label=f"{key.title()} {item[key]}",
-                            custom_id=Fight.food.build_custom_id(item=key.lower(), author=self.author),
+                            custom_id=Fight.food.build_custom_id(item=key.lower(), uid=self.author.id),
                             style=ButtonStyle.grey
                         )
                     )
@@ -443,31 +444,10 @@ class Fight(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
-    class Choose(disnake.ui.View):
-        def __init__(self, member: disnake.Member = None):
-            super().__init__()
-            self.choice = None
-            self.author = member
-
-
-        @disnake.ui.button(label="Boss", style=disnake.ButtonStyle.green, disabled=None)
-        async def boss(self, button: disnake.Button, inter: disnake.MessageInteraction):
-            if self.author == inter.author:
-                self.choice = "boss"
-                self.stop()
-                return
-
-        @disnake.ui.button(label="Monster", style=disnake.ButtonStyle.green)
-        async def monster(self,button: disnake.Button, inter:disnake.MessageInteraction):
-            if self.author == inter.author:
-                self.choice = "monster"
-                self.stop()
-                return
             
     @components.component_listener()
-    async def food(self, inter: disnake.MessageInteraction, item: str, author: disnake.Member) -> None:
-        if inter.author != author:
+    async def food(self, inter: disnake.MessageInteraction, item: str, uid: int) -> None:
+        if inter.author.id != uid:
             await inter.send('This is not yours kiddo!', ephemeral=True)
             return
 
@@ -478,7 +458,7 @@ class Fight(commands.Cog):
 
         await inter.edit_original_message(components=row)
 
-        return await getattr(battle, inter.bot.items[item]["func"])(self, inter, item)
+        return await getattr(inter.bot.fights[str(uid)], inter.bot.items[item]["func"])(item)
             
     @components.component_listener()
     async def action(self, inter: disnake.MessageInteraction, action: str, uid: int) -> None:
