@@ -306,7 +306,7 @@ class battle:
             data["inventory"].append(data["armor"])
 
             data["armor"] = item
-            await self.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
+            await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
             await self.send(f"Successfully equipped {item.title()}")
 
             return await self.counter_attack()
@@ -328,7 +328,7 @@ class battle:
                 await self.channel.send("Your health maxed out")
                 return await self.counter_attack(self)
             health = data["health"]
-            await inter.bot.players.update_one({"_id": self.author.id}, {"$set": data})
+            await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
             await self.channel.send(
                 f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
             )
@@ -386,16 +386,15 @@ class battle:
                 monster = info["last_monster"]
 
             if monster == "sans":
-                await inter.send(
+                await self.channel.send(
                     "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
                 )
                 info["selected_monster"] = None
-                self.bot.fights.remove(self.author.id)
                 info["health"] = 10
-                # if str(inter.invoked_with) == "fboss":
-                #     info["rest_block"] = time.time()
-                #     await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": info})
-                #     return
+                info["rest_block"] = time.time()
+                await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
+                await self.end()
+                
 
             func = ["spared", "NotSpared", "spared"]
             monster = info["selected_monster"]
