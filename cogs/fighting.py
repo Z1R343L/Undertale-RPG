@@ -72,7 +72,7 @@ class battle:
             for i in self.bot.locations:
                 if self.bot.locations[i]["RQ_LV"] == info["level"]:
                     await self.channel.send(
-                        self.author.mention + 
+                        f"{self.author.mention}\n\n" + 
                         f"Congrats, You unlocked {i}, you can go there by running /travel"
                     )
             return await self.check_levelup()
