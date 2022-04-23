@@ -19,9 +19,7 @@ class Developer_Tools(commands.Cog):
     @commands.is_owner()
     async def fix(self, inter):
         """Fix, duh?"""
-        await inter.send("Fixing")
         self.bot.fights = []
-
         await inter.send("Done!")
 
     @commands.slash_command()
