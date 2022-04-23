@@ -20,7 +20,6 @@ class Developer_Tools(commands.Cog):
     async def fix(self, inter):
         """Fix, duh?"""
         await inter.send("Fixing")
-        data = self.bot.players.find()
         self.bot.fights = []
 
         await inter.send("Done!")
