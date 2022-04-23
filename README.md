@@ -22,3 +22,5 @@ The bot is too unoptimized, the code is messed up and needs to be cleaned out an
 - Willing to make a complete fight system, super powered, special attacks, defending methods.
 
 - Complete timelines compatibility.
+
+- Quests system and tasks for advantages.
