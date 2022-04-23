@@ -5,12 +5,11 @@ from disnake.ext import commands
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from utility.loader import _create_guild_info
 from utility.utils import bcolors
 
 load_dotenv()
 
-DEFUALT_DISABLED_MESSAGE = (
+DEFAULT_DISABLED_MESSAGE = (
     "The bot is currently disabled for an update or an refresh is happening, please. "
     "wait until its back up, you can join our support server to get notified once its backup."
 )
@@ -21,7 +20,7 @@ async def is_enabled(ctx):
         if ctx.bot.ENABLED:
             return True
 
-        await ctx.send(ctx.bot.WARNING)
+        await ctx.send(DEFAULT_DISABLED_MESSAGE)
         return False
     return True
 
@@ -70,22 +69,14 @@ class UndertaleBot(commands.AutoShardedBot):
         self.db = self.cluster["database"]
         self.players = self.db["players"]
         self.guilds_db = self.db["guilds"]
+        self.boosters = self.db["boosters"]
         print("Database connection established")
         print("db_load task finished")
         return
 
-    # To access to stuff
-
-    # @property
-    # def mongo(self):
-    #    return self.get_cog("Mongo")
-
-
-async def determine_prefix(UT, message):
-    return "u!"
 
 bot = UndertaleBot(
-    command_prefix=determine_prefix,
+    command_prefix="u!",
     owner_ids=[
         845322234607829032,
         736820906604888096,
@@ -97,6 +88,5 @@ bot = UndertaleBot(
     ]
 )
 
-# bot.slash = InteractionClient(bot)
 bot.load_extension("jishaku")
 bot.run(bot.BotToken)
