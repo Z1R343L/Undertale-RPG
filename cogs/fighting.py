@@ -40,6 +40,8 @@ class battle:
 
     # ending the fight with the id
     async def end(self):
+        if str(self.author.id) in self.bot.fights:
+            return
         del self.bot.fights[str(self.author.id)]
 
     async def check_levelup(self):
@@ -115,109 +117,103 @@ class battle:
         await self.inter.send(self.author.mention, embed=embed, components=buttons)
 
     async def attack(self):
-        try:
-            event = self.bot.events
-            data = self.bot.monsters
-            author = self.author
-            info = await self.bot.players.find_one({"_id": self.author.id})
-            user_wep = info["weapon"]
-            monster = self.monster
-            if monster is None:
-                monster = info["last_monster"]
-            damage = info["damage"]
-            enemy_hp = info["monster_hp"]
+        event = self.bot.events
+        data = self.bot.monsters
+        author = self.author
+        info = await self.bot.players.find_one({"_id": self.author.id})
+        user_wep = info["weapon"]
+        monster = self.monster
+        if monster is None:
+            monster = info["last_monster"]
+        damage = info["damage"]
+        enemy_hp = info["monster_hp"]
 
-            min_dmg = self.bot.items[user_wep]["min_dmg"]
-            max_dmg = self.bot.items[user_wep]["max_dmg"]
-            enemy_min_gold = data[monster]["min_gold"]
-            enemy_max_gold = data[monster]["max_gold"]
-            enemy_xp_min = data[monster]["min_xp"]
-            enemy_xp_max = data[monster]["max_xp"]
+        min_dmg = self.bot.items[user_wep]["min_dmg"]
+        max_dmg = self.bot.items[user_wep]["max_dmg"]
+        enemy_min_gold = data[monster]["min_gold"]
+        enemy_max_gold = data[monster]["max_gold"]
+        enemy_xp_min = data[monster]["min_xp"]
+        enemy_xp_max = data[monster]["max_xp"]
 
-            enemy_gold = random.randint(enemy_min_gold, enemy_max_gold)
-            enemy_xp = random.randint(enemy_xp_min, enemy_xp_max)
-            user_dmg = random.randint(min_dmg, max_dmg)
+        enemy_gold = random.randint(enemy_min_gold, enemy_max_gold)
+        enemy_xp = random.randint(enemy_xp_min, enemy_xp_max)
+        user_dmg = random.randint(min_dmg, max_dmg)
 
-            dodge_chance = random.randint(1, 10)
+        atem = disnake.Embed(title="You Attack")
 
-            atem = disnake.Embed(title="You Attack")
+        # player attack
+        damage = int(user_dmg) + int(damage)
+        enemy_hp_after = int(enemy_hp) - damage
+        enemy_hp_after = max(enemy_hp_after, 0)
+        atem.description = f"You Damaged **{monster}**\n**-{user_dmg}HP**\ncurrent monster hp: **{enemy_hp_after}HP**"
+        atem.set_thumbnail(
+            url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
+        )
+        await self.channel.send(self.author.mention, embed=atem)
+        if enemy_hp_after <= 0:
+            await asyncio.sleep(1)
+            embed = disnake.Embed(
+                title="You Won!",
+                description=f"You Earned **{int(enemy_gold)} G** and **{int(enemy_xp)}XP**",
+                color=disnake.Colour.gold(),
+            )
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/850983850665836544/878997428840329246/image0.png"
+            )
+            xp_multi = int(info["multi_xp"])
+            gold_multi = int(info["multi_g"])
+            gold = enemy_gold
+            exp = enemy_xp
+            # Multiplier
+            if info["multi_g"] > 1 and info["multi_xp"] > 1:
+                gold = gold * info["multi_xp"]
+                exp = exp * info["multi_g"]
+                embed.description += f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+            # booster
+            if self.author.id in self.bot.boosters["boosters"]:
+                exp = exp * 4
+                gold = gold * 4
+                embed.description += (f"\n\n**[BOOSTER MULTIPLIER]**\n> **[4x]** XP: **+{int(exp - enemy_xp)}**"
+                                      f" ({int(exp)})\n> **[4x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+                                      )
 
-            if dodge_chance in [5, 9]:
-                atem.description = f"**{monster}** Dodged the attack!"
-                await self.channel.send(self.author.mention, embed=atem)
-                await asyncio.sleep(3)
-                await self.counter_attack()
-            else:
-                # player attack
-                damage = int(user_dmg) + int(damage)
-                enemy_hp_after = int(enemy_hp) - damage
-                enemy_hp_after = max(enemy_hp_after, 0)
-                atem.description = f"You Damaged **{monster}**\n**-{user_dmg}HP**\ncurrent monster hp: **{enemy_hp_after}HP**"
-                atem.set_thumbnail(
-                    url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
-                )
-                await self.channel.send(self.author.mention, embed=atem)
-                if enemy_hp_after <= 0:
-                    await asyncio.sleep(1)
-                    embed = disnake.Embed(
-                        title="You Won!",
-                        description=f"You Earned **{int(enemy_gold)} G** and **{int(enemy_xp)}XP**",
-                        color=disnake.Colour.gold(),
+
+            if event is not None:
+                xp_multi = int(event["multi_xp"])
+                gold_multi = int(event["multi_g"])
+                gold = gold * event["multi_g"]
+                exp = exp * event["multi_xp"]
+                name = event["name"]
+
+                embed.description += f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+
+            info["selected_monster"] = None
+            info["monster_hp"] = 0
+            if self.kind == 1:
+                info["rest_block"] = time.time()
+
+            info["gold"] = info["gold"] + gold
+            info["exp"] = info["exp"] + exp
+
+            if len(self.bot.monsters[monster]["loot"]) > 0:
+                num = random.randint(0, 6)
+                crate = self.bot.monsters[monster]["loot"][0]
+                if num < 2:
+                    info[crate] += 1
+                    embed.description += (
+                        f"\n\n**You got a {crate}, check u?crate command**"
                     )
-                    embed.set_thumbnail(
-                        url="https://cdn.discordapp.com/attachments/850983850665836544/878997428840329246/image0.png"
-                    )
-                    xp_multi = int(info["multi_xp"])
-                    gold_multi = int(info["multi_g"])
-                    gold = enemy_gold
-                    exp = enemy_xp
-                    # Multiplier
-                    if info["multi_g"] > 1 and info["multi_xp"] > 1:
-                        gold = gold * info["multi_xp"]
-                        exp = exp * info["multi_g"]
-                        embed.description += f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
-                    # Events
-                    if event is not None:
-                        xp_multi = int(event["multi_xp"])
-                        gold_multi = int(event["multi_g"])
-                        gold = gold * event["multi_g"]
-                        exp = exp * event["multi_xp"]
-                        name = event["name"]
-
-                        embed.description += f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
-
-                    info["selected_monster"] = None
-                    info["monster_hp"] = 0
-                    if self.kind == 1:
-                        info["rest_block"] = time.time()
-
-                    info["gold"] = info["gold"] + gold
-                    info["exp"] = info["exp"] + exp
-
-                    if len(self.bot.monsters[monster]["loot"]) > 0:
-                        num = random.randint(0, 6)
-                        crate = self.bot.monsters[monster]["loot"][0]
-                        if num < 2:
-                            info[crate] += 1
-                            embed.description += (
-                                f"\n\n**You got a {crate}, check u?crate command**"
-                            )
-                    info["kills"] = info["kills"] + 1
-                    await self.bot.players.update_one({"_id": author.id}, {"$set": info})
-                    await self.check_levelup()
-                    await self.channel.send(embed=embed)
-                    print(f"{self.author} has ended the fight")
-                    return await self.end()
-                else:
-                    info["monster_hp"] = enemy_hp_after
-                    await self.bot.players.update_one({"_id": author.id}, {"$set": info})
-                    await asyncio.sleep(2)
-                    return await self.counter_attack()
-
-            return
-        except Exception as e:
-            await self.bot.get_channel(827651947678269510).send(e)
-            await self.end()
+            info["kills"] = info["kills"] + 1
+            await self.bot.players.update_one({"_id": author.id}, {"$set": info})
+            await self.check_levelup()
+            await self.channel.send(embed=embed)
+            print(f"{self.author} has ended the fight")
+            return await self.end()
+        else:
+            info["monster_hp"] = enemy_hp_after
+            await self.bot.players.update_one({"_id": author.id}, {"$set": info})
+            await asyncio.sleep(2)
+            return await self.counter_attack()
 
     async def counter_attack(self):
         data = self.bot.monsters
@@ -236,16 +232,9 @@ class battle:
 
         enemy_dmg = enemy_dmg - int(user_dfs)
         if enemy_dmg <= 0:
-            enemy_dmg = 1
-            enemy_dmg = random.randint(enemy_dmg, enemy_dmg + 10)
-        dodge_chance = random.randint(1, 10)
-        atem = disnake.Embed(title=f"{enemy_define} Attacks")
+            enemy_dmg = 3
 
-        if dodge_chance >= 9:
-            atem.description = f"**{self.author.name}** Dodged the attack!"
-            await self.channel.send(self.author.mention, embed=atem)
-            await asyncio.sleep(3)
-            return await self.menu()
+        atem = disnake.Embed(title=f"{enemy_define} Attacks")
 
         user_hp_after = int(user_hp) - int(enemy_dmg)
         gold_lost = random.randint(10, 40) + info["level"]

@@ -103,6 +103,41 @@ class Economy(commands.Cog):
 
     @commands.slash_command()
     @commands.cooldown(1, 12, commands.BucketType.user)
+    async def booster(self, inter):
+        """Claim Your daily Reward!"""
+        author = inter.author
+        await loader.create_player_info(inter, inter.author)
+        if author.id not in inter.bot.boosters["boosters"]:
+            await inter.send(
+                "You are not a booster!, only people who boost our support server are able to get the rewards!")
+            return
+        info = await self.bot.players.find_one({"_id": author.id})
+        goldget = 2500 * info["multi_g"]
+        curr_time = time.time()
+        if "booster_block" not in info:
+            info["booster_block"] = 0
+        delta = int(curr_time) - int(info["booster_block"])
+
+        if delta >= 86400 and delta > 0:
+            info["gold"] += goldget
+            info["booster_block"] = curr_time
+            await self.bot.players.update_one({"_id": author.id}, {"$set": info})
+            em = disnake.Embed(
+                description=f"**You received your booster gold! {int(goldget)} G**",
+                color=disnake.Color.blue(),
+            )
+            return await inter.send(embed=em)
+        else:
+            seconds = 86400 - delta
+            em = disnake.Embed(
+                description=f"**You can't claim your daily reward yet!\n\nYou can claim your booster reward <t:{int(time.time()) + int(seconds)}:R>**",
+                color=disnake.Color.red(),
+            )
+
+        await inter.send(embed=em, ephemeral=True)
+
+    @commands.slash_command()
+    @commands.cooldown(1, 12, commands.BucketType.user)
     async def daily(self, inter):
         """Claim Your daily Reward!"""
         author = inter.author
