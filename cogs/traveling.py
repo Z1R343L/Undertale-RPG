@@ -53,7 +53,7 @@ class Traveling(commands.Cog):
         lista.append(
             Button(
                 label="Close Interaction",
-                custom_id=self.selected.build_custom_id(
+                custom_id=self.t_selected.build_custom_id(
                     place="end",
                     uid=inter.author.id
                 ),
@@ -75,7 +75,7 @@ class Traveling(commands.Cog):
         await inter.send(embed=em, components=rows)
 
     @components.component_listener()
-    async def selected(self, inter: disnake.MessageInteraction, place: str, uid: str) -> None:
+    async def t_selected(self, inter: disnake.MessageInteraction, place: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
