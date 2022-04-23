@@ -78,19 +78,19 @@ def intro_build_comps(author_id: str, index: int) -> list:
         disnake.ui.Button(
             style=disnake.ButtonStyle.gray,
             label='<',
-            custom_id=':'.join(['intro_left', author_id]),
+            custom_id=MyCog.intro_controller.build_custom_id(act="intro_left", uid=author_id),
             disabled=disable_l
         ),
         disnake.ui.Button(
             style=disnake.ButtonStyle.gray,
             label='>',
-            custom_id=':'.join(['intro_right', author_id]),
+            custom_id=MyCog.intro_controller.build_custom_id(act="intro_right", uid=author_id),
             disabled=disable_r
         ),
         disnake.ui.Button(
             style=disnake.ButtonStyle.danger,
             label='x',
-            custom_id=':'.join(['intro_exit', author_id]),
+            custom_id=MyCog.intro_controller.build_custom_id(act="intro_exit", uid=author_id),
         ),
     ]
 
@@ -125,21 +125,20 @@ class MyCog(commands.Cog):
             )
         )
 
-    @components.button_with_id(regex=r'intro_exit:(?P<uid>\d+)')
-    async def intro_exit_btn(self, inter: disnake.MessageInteraction, uid: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('not allowed!', ephemeral=True)
-            return
-        await inter.response.defer()
-        await inter.message.delete()
+    @components.component_listener()
+    async def intro_controller(self, inter: disnake.MessageInteraction, act: str, uid: str) -> None:
+        if act == "intro_exit":
+            if inter.author.id != int(uid):
+                await inter.send('not allowed!', ephemeral=True)
+                return
+            await inter.response.defer()
+            return await inter.message.delete()
 
-    @components.button_with_id(regex=r'intro_left:(?P<uid>\d+)')
-    async def intro_left_btn(self, inter: disnake.MessageInteraction, uid: str) -> None:
-        await intro_proc_nav(inter=inter, val=1, uid=uid)
+        if act == "intro_right":
+            return await intro_proc_nav(inter=inter, val=0, uid=uid)
 
-    @components.button_with_id(regex=r'intro_right:(?P<uid>\d+)')
-    async def intro_right_btn(self, inter: disnake.MessageInteraction, uid: str) -> None:
-        await intro_proc_nav(inter=inter, val=0, uid=uid)
+        if act == "intro_left":
+            await intro_proc_nav(inter=inter, val=1, uid=uid)
 
 
 def setup(bot: commands.Bot):
