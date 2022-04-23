@@ -7,6 +7,7 @@ __pycache__/
 .local
 .cache
 main.sh
+.replit
 
 # C extensions
 *.so
