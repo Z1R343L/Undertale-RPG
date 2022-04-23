@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.8-blue?style=for-the-badge)
 ![License](https://img.shields.io/github/license/theblobscp/undertale-rpg?style=for-the-badge)
 
-| :bangbang: | This bot is the beta version, its unstable and unfinished. |
+| :bangbang: | This is cutrently both the slash command rewrite and the first release. |
 |:----------:|:-----------------------------------------------------------|
 
 An Undertale RPG Discord bot to fight monsters, bosses, level up and duel with other players.
@@ -20,7 +20,5 @@ The bot is too unoptimized, the code is messed up and needs to be cleaned out an
 # **To Do List**
 
 - Willing to make a complete fight system, super powered, special attacks, defending methods.
-
-- Achivement system for diffrent types of actions.
 
 - Complete timelines compatibility.
