@@ -39,7 +39,27 @@ class Traveling(commands.Cog):
                            )
                 )
                 continue
-            lista.append(Button(label=key.title(), custom_id=f"travel:{key}:{inter.author.id}", style=ButtonStyle.blurple, disabled=False))
+            lista.append(
+                Button(
+                    label=key.title(),
+                    custom_id=self.selected.build_custom_id(
+                        place=key.lower(),
+                        uid=inter.author.id
+                    ),
+                    style=ButtonStyle.blurple, disabled=False
+                )
+            )
+
+        lista.append(
+            Button(
+                label="Close Interaction",
+                custom_id=self.selected.build_custom_id(
+                    place="end",
+                    uid=inter.author.id
+                ),
+                style=ButtonStyle.red, disabled=False
+            )
+        )
 
         rows = []
         for i in range(0, len(lista), 5):
@@ -54,9 +74,7 @@ class Traveling(commands.Cog):
         em.description += f"\nYour current location is **{loc.title()}**"
         await inter.send(embed=em, components=rows)
 
-
-
-    @components.button_with_id(regex=r"travel:(?P<place>\D+):(?P<uid>\d+)")
+    @components.component_listener()
     async def selected(self, inter: disnake.MessageInteraction, place: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -67,9 +85,14 @@ class Traveling(commands.Cog):
         answer = place
         await inter.response.defer()
 
+        if answer == "end":
+            msg = await inter.original_message()
+            comps = await utility.utils.disable_all(msg)
+            await inter.edit_original_message(components=comps)
+            return await inter.send("closed", ephemeral=True)
+
         if answer == info["location"]:
-            await inter.send(f"You are Already At {answer}.")
-            return
+            return await inter.send(f"You are Already At {answer}.", ephemeral=True)
 
         if answer in data:
             info["location"] = answer
