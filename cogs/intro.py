@@ -115,8 +115,8 @@ class MyCog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @commands.slash_command()
-    async def intro(self, inter: disnake.AppCmdInter) -> None:
+    @commands.command()
+    async def intro(self, inter) -> None:
         await inter.send(
             embed=intro_embs[0],
             components=intro_build_comps(
