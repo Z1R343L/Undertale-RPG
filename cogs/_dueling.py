@@ -4,9 +4,8 @@ import random
 
 import discord
 from discord.ext import commands
-from dislash import *
 
-import botTools.loader as loader
+import utility.loader as loader
 
 importlib.reload(loader)
 

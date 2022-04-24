@@ -1,12 +1,10 @@
 import time
-from typing import Counter
 
 import aiohttp
-import discord
-from discord.ext import commands, tasks
+import disnake
+from disnake.ext import commands, tasks
 
-from botTools.dataIO import fileIO
-from botTools.loader import create_guild_info
+from utility.dataIO import fileIO
 
 starttime = time.time()
 
@@ -33,11 +31,11 @@ class Bot(commands.Cog):
         data = {"server_count": len(self.bot.guilds), "shard_count": len(self.bot.shards)}
         await self.dbl_session.post(f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data)
 
-    @commands.command(aliases=["ev"])
-    async def event(self, ctx):
+    @commands.command(name="event")
+    async def event(self, inter):
         event = self.bot.events
         if event is None:
-            await ctx.send("There is no event ongoing at the moment.")
+            await inter.send("There is no event ongoing at the moment.")
             self.bot.events = None
             return
 
@@ -45,29 +43,18 @@ class Bot(commands.Cog):
         banner = event["banner"]
         desc = event["desc"]
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title=f"{name} Event",
             description=desc,
-            colour=discord.Colour.random()
+            colour=disnake.Colour.random()
         )
         embed.set_image(url=banner)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
-    @commands.command(aliases=["set_prefix"])
-    @commands.has_permissions(manage_guild=True)
-    async def change_prefix(self, ctx, *, prefix):
-        if len(prefix) >= 8:
-            return await ctx.send("You can't set a prefix higher than 8 characters.")
-
-        data = await create_guild_info(ctx, ctx.guild)
-        data["prefix"] = prefix
-        await ctx.bot.guilds_db.update_one({"_id": ctx.guild.id}, {"$set": data})
-        return await ctx.send(f"Changed prefix to {prefix}")
-
-    @commands.command(aliases=["about"])
-    async def info(self, ctx):
+    @commands.command()
+    async def info(self, inter):
         """information about the bot and more"""
-        em = discord.Embed(color=discord.Colour.random())
+        em = disnake.Embed(color=disnake.Colour.random())
 
         em.title = "Undertale RPG"
         em.description = "An Undertale RPG Themed bot for discord, Made by LetsChill#0001"
@@ -87,16 +74,16 @@ class Bot(commands.Cog):
 
         em.add_field(
             name="current shard/shard count",
-            value=f"{ctx.guild.shard_id}/{len(self.bot.shards)}",
+            value=f"{inter.guild.shard_id}/{len(self.bot.shards)}",
             inline=False
         )
-        em.set_thumbnail(url=self.bot.user.avatar_url)
-        await ctx.reply(embed=em)
+        em.set_thumbnail(url=self.bot.user.avatar.url)
+        await inter.send(embed=em)
 
     @commands.command()
-    async def vote(self, ctx):
+    async def vote(self, inter):
         """Vote for the bot for special reward"""
-        vt = discord.Embed(title="<:DT:865088692376829952> Voting", color=0x2ECC71)
+        vt = disnake.Embed(title="<:DT:865088692376829952> Voting", color=0x2ECC71)
         vt.add_field(
             name="Vote on Top.gg (500G + Standard crate)",
             value=f"[Click Here]({self.bot.vote_url})",
@@ -107,54 +94,33 @@ class Bot(commands.Cog):
             value="You can claim an exclusive reward by joining our server and running u?supporter",
             inline=True,
         )
-        await ctx.send(embed=vt)
+        await inter.send(embed=vt)
 
-    @commands.command(aliases=["support"])
-    async def invite(self, ctx):
+    @commands.command()
+    async def invite(self, inter):
         """Invite the bot!!!"""
-        e = discord.Embed(
+        e = disnake.Embed(
             title="Wanna add me to your server huh?, click the link below!",
-            color=discord.Colour.blue(),
+            color=disnake.Colour.blue(),
         )
         e.add_field(
             name="Invite Bot",
-            value="[Click Here](https://discord.com/api/oauth2/authorize?client_id=815153881217892372&permissions=388160&scope=bot)",
+            value=("[Click Here]"
+                "(https://discord.com/api/oauth2/authorize?client_id=815153881217892372&permissions=412421053760&scope="
+                   "bot%20applications.commands)"),
         )
 
         e.add_field(
             name="Join server", value="[Click Here](https://discord.gg/FQYVpuNz4Q)"
         )
 
-        e.set_thumbnail(url=self.bot.user.avatar_url)
-        await ctx.send(embed=e)
+        e.set_thumbnail(url=self.bot.user.avatar.url)
+        await inter.send(embed=e)
 
-    @commands.command(aliases=["latency"])
-    async def ping(self, ctx):
+    @commands.slash_command()
+    async def ping(self, inter):
         """Latency Check for stability"""
-        before = time.monotonic()
-        message = await ctx.send("Pinging!")
-        ping = (time.monotonic() - before) * 1000
-        await message.edit(content=f"Pong! {int(ping)}ms")
-
-    @commands.command()
-    @commands.has_permissions(manage_messages=True)
-    async def cleanup(self, ctx, search=100):
-        """Cleans up the bots messages from the channel."""
-
-        def check(m):
-            return m.author == ctx.me or m.content.startswith(ctx.prefix)
-
-        deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
-        spammers = Counter(m.author.display_name for m in deleted)
-        count = len(deleted)
-
-        messages = [f'{count} message{" was" if count == 1 else "s were"} removed.']
-        if len(deleted) > 0:
-            messages.append("")
-            spammers = sorted(spammers.items(), key=lambda t: t[1], reverse=True)
-            messages.extend(f"– **{author}**: {count}" for author, count in spammers)
-
-        await ctx.send("\n".join(messages), delete_after=5)
+        await inter.send(f"pong! **{round(self.bot.latency * 1000)}ms**")
 
 
 def setup(bot):

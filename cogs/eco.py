@@ -2,16 +2,49 @@ import importlib
 import random
 import time
 
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
-import botTools.loader as loader
-import cogs.fighting as fighting
+import utility.loader as loader
+from utility.utils import get_bar, disable_all
+
+from datetime import datetime
 
 importlib.reload(loader)
 
 starttime = time.time()
 
+class Choice(disnake.ui.View):
+    def __init__(self, author: disnake.Member):
+        super().__init__()
+        self.author = author
+        self.choice = None
+
+
+    @disnake.ui.button(label="Yes", style=disnake.ButtonStyle.green)
+    async def Yes(self, button, inter):
+        if inter.author != self.author:
+            return await inter.send("This is not yours kiddo!", ephemeral=True)
+        self.choice = True
+        await inter.response.defer()
+        msg = await inter.original_message()
+        row = await disable_all(msg)
+
+        await inter.edit_original_message(components=row)
+        self.stop()
+
+    @disnake.ui.button(label="No", style=disnake.ButtonStyle.red)
+    async def No(self, button, inter):
+        if inter.author != self.author:
+            return await inter.send("This is not yours kiddo!", ephemeral=True)
+        self.choice = False
+
+        await inter.response.defer()
+        msg = await inter.original_message()
+        row = await disable_all(msg)
+
+        await inter.edit_original_message(components=row)
+        self.stop()
 
 class Economy(commands.Cog):
     """Economy module and balance related"""
@@ -20,45 +53,95 @@ class Economy(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def reset(self, ctx):
-        await loader.create_player_info(ctx, ctx.author)
-        old_data = await self.bot.players.find_one({"_id": ctx.author.id})
+    async def reset(self, inter):
+        await loader.create_player_info(inter, inter.author)
+        old_data = await self.bot.players.find_one({"_id": inter.author.id})
 
         if old_data["level"] < 70:
-            await ctx.send(
+            await inter.send(
                 "you are not yet passed, reach **LVL70**, and you shall come back"
             )
             return
 
-        await ctx.send(
-            "Are you sure you want to proceed!\n\nYou will gain the ability to travel other dimension, and your gold and xp will be doubled each time you get some\n\n**Yes**\t\t\t\t**No**"
+        gold = round(old_data["multi_g"] + 0.4, 1)
+        xp = round(old_data["multi_xp"] + 0.2, 1)
+
+        embed = disnake.Embed(
+            title="Reseting your world.",
+            description=("Are you sure you want to proceed\nYour progress will vanish, but you will gain multipliers for gold and xp.\n\n"
+                         f"Your gold multiplier will be **{gold}x**"
+                         f"\nYour XP multiplier will be **{xp}x**"
+                         )
         )
-        answer = await self.bot.wait_for(
-            "message",
-            check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
-            timeout=60,
+        embed.set_image(
+            "https://static.wikia.nocookie.net/xtaleunderverse4071/images/c/c4/UnderverseReset.jpg"
         )
-        if answer.content.lower() == "yes":
-            await self.bot.players.delete_one({"_id": ctx.author.id})
-            await loader.create_player_info(ctx, ctx.author)
-            new_data = await self.bot.players.find_one({"_id": ctx.author.id})
+        embed.set_thumbnail(inter.author.avatar.url)
+
+        embed.set_footer(text=datetime.utcnow(), icon_url=inter.bot.user.avatar.url)
+
+        embed.set_author(name=f"executed by {str(inter.author)}", icon_url=inter.author.avatar.url)
+        view = Choice(inter.author)
+        await inter.send(embed=embed, view=view)
+        await view.wait()
+
+
+        if view.choice:
+            await self.bot.players.delete_one({"_id": inter.author.id})
+            await loader.create_player_info(inter, inter.author)
+            new_data = await self.bot.players.find_one({"_id": inter.author.id})
             new_data["resets"] = old_data["resets"] + 1
-            new_data["multi_g"] = old_data["multi_g"] + 0.7
-            new_data["multi_xp"] = old_data["multi_xp"] + 0.4
+            new_data["multi_g"] = old_data["multi_g"] + 0.4
+            new_data["multi_xp"] = old_data["multi_xp"] + 0.2
             new_data["tokens"] = old_data["tokens"]
             await self.bot.players.update_one(
-                {"_id": ctx.author.id}, {"$set": new_data}
+                {"_id": inter.author.id}, {"$set": new_data}
             )
-            await ctx.send("You have resseted your world.")
+            await inter.send("You deleted your world, a new world appear in the horizon.")
         else:
-            await ctx.send("You shall come back again!")
+            await inter.send("You should come back again!")
 
     @commands.command()
     @commands.cooldown(1, 12, commands.BucketType.user)
-    async def daily(self, ctx):
+    async def booster(self, inter):
         """Claim Your daily Reward!"""
-        author = ctx.author
-        await loader.create_player_info(ctx, ctx.author)
+        author = inter.author
+        await loader.create_player_info(inter, inter.author)
+        if author.id not in inter.bot.boosters["boosters"]:
+            await inter.send(
+                "You are not a booster!, only people who boost our support server are able to get the rewards!")
+            return
+        info = await self.bot.players.find_one({"_id": author.id})
+        goldget = 2500 * info["multi_g"]
+        curr_time = time.time()
+        if "booster_block" not in info:
+            info["booster_block"] = 0
+        delta = int(curr_time) - int(info["booster_block"])
+
+        if delta >= 86400 and delta > 0:
+            info["gold"] += goldget
+            info["booster_block"] = curr_time
+            await self.bot.players.update_one({"_id": author.id}, {"$set": info})
+            em = disnake.Embed(
+                description=f"**You received your booster gold! {int(goldget)} G**",
+                color=disnake.Color.blue(),
+            )
+            return await inter.send(embed=em)
+        else:
+            seconds = 86400 - delta
+            em = disnake.Embed(
+                description=f"**You can't claim your daily reward yet!\n\nYou can claim your booster reward <t:{int(time.time()) + int(seconds)}:R>**",
+                color=disnake.Color.red(),
+            )
+
+        await inter.send(embed=em, ephemeral=True)
+
+    @commands.command()
+    @commands.cooldown(1, 12, commands.BucketType.user)
+    async def daily(self, inter):
+        """Claim Your daily Reward!"""
+        author = inter.author
+        await loader.create_player_info(inter, inter.author)
 
         info = await self.bot.players.find_one({"_id": author.id})
         goldget = 500 * info["multi_g"]
@@ -69,40 +152,44 @@ class Economy(commands.Cog):
             info["gold"] += goldget
             info["daily_block"] = curr_time
             await self.bot.players.update_one({"_id": author.id}, {"$set": info})
-            em = discord.Embed(
+            em = disnake.Embed(
                 description=f"**You received your daily gold! {int(goldget)} G**",
-                color=discord.Color.blue(),
+                color=disnake.Color.blue(),
             )
         else:
             seconds = 86400 - delta
-            em = discord.Embed(
+            em = disnake.Embed(
                 description=f"**You can't claim your daily reward yet!\n\nYou can claim your daily reward <t:{int(time.time()) + int(seconds)}:R>**",
-                color=discord.Color.red(),
+                color=disnake.Color.red(),
             )
 
-        await ctx.send(embed=em)
+        await inter.send(embed=em)
 
-    @commands.command(aliases=["bal", "balance"])
+    @commands.command()
     @commands.cooldown(1, 7, commands.BucketType.user)
-    async def gold(self, ctx):
+    async def gold(self, inter):
         """Check your gold balance"""
-        await loader.create_player_info(ctx, ctx.author)
-        info = await self.bot.players.find_one({"_id": ctx.author.id})
+        await loader.create_player_info(inter, inter.author)
+        info = await self.bot.players.find_one({"_id": inter.author.id})
         bal = info["gold"]
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title="Balance",
             description=f"Your balance:\n**{int(bal)}G**",
-            color=discord.Colour.random(),
+            color=disnake.Colour.random(),
         )
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
-    @commands.command(aliases=["level", "progress", "lvl", "stat", "profile"])
+    @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def stats(self, ctx, member: discord.User = None):
+    async def stats(self, inter, member: disnake.User = None):
         """Check your stats and powers"""
-        player = member or ctx.author
-        await loader.create_player_info(ctx, ctx.author)
+        player = member or inter.author
+        if player.bot:
+          await inter.send("Nice try!", ephemeral=True)
+          return
+        await loader.create_player_info(inter, player)
         info = await self.bot.players.find_one({"_id": player.id})
+
         max_xp = 100 * info["level"]
         xp = info["exp"]
         # stats
@@ -110,7 +197,7 @@ class Economy(commands.Cog):
         health = info["health"]
         max_health = info["max_health"]
 
-        bar = await fighting.battle.get_bar(health, max_health)
+        bar = await get_bar(health, max_health)
         attack = info["damage"]
         armor = info["armor"]
         weapon = info["weapon"]
@@ -122,10 +209,10 @@ class Economy(commands.Cog):
         xp_mult = info["multi_xp"]
         tokens = info["tokens"]
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title=f"{player.name}‘s Stats!",
             description="Your Status and progress in the game",
-            color=discord.Color.random(),
+            color=disnake.Color.random(),
         )
         embed.add_field(
             name="<:HP:916553886339309588>┃Health",
@@ -168,14 +255,14 @@ class Economy(commands.Cog):
         embed.add_field(name="▫️┃Gold Multiplier", value=f"{round(g_mult, 1)}x")
         embed.add_field(name="▫️┃XP Multiplier", value=f"{round(xp_mult, 1)}x")
 
-        embed.set_thumbnail(url=player.avatar_url)
-        await ctx.send(embed=embed)
+        embed.set_thumbnail(url=player.avatar.url)
+        await inter.send(embed=embed)
 
-    @commands.command(aliases=["inv"])
-    async def inventory(self, ctx):
+    @commands.command()
+    async def inventory(self, inter):
         """Shows your inventory"""
-        author = ctx.author
-        await loader.create_player_info(ctx, ctx.author)
+        author = inter.author
+        await loader.create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": author.id})
 
         def countoccurrences(stored, value):
@@ -195,25 +282,25 @@ class Economy(commands.Cog):
         for k, v in store.items():
             inventory += f"{k} {v}x\n"
 
-        em = discord.Embed(title="Your Inventory", color=discord.Colour.random())
+        em = disnake.Embed(title="Your Inventory", color=disnake.Colour.random())
         em.add_field(name="▫️┃Gold:", value=f"**{int(gold)}**", inline=False)
         em.add_field(name="📦┃Items:", value=f"**{inventory}**", inline=False)
-        em.set_thumbnail(url=ctx.author.avatar_url)
+        em.set_thumbnail(url=inter.author.avatar.url)
 
-        await ctx.send(embed=em)
+        await inter.send(embed=em)
 
-    @commands.command(aliases=["sp"])
+    @commands.command()
     @commands.cooldown(1, 12, commands.BucketType.user)
-    async def supporter(self, ctx):
+    async def supporter(self, inter):
         """Join our support server and claim a bunch of gold"""
-        await loader.create_player_info(ctx, ctx.author)
+        await loader.create_player_info(inter, inter.author)
         while True:
-            if ctx.guild.id != 817437132397871135:
-                await ctx.send(
-                    "this command is exclusive for our server, you can join via \n\n https://discord.gg/FQYVpuNz4Q"
+            if inter.guild.id != 817437132397871135:
+                await inter.send(
+                    "this slash_command is exclusive for our server, you can join via \n\n https://discord.gg/FQYVpuNz4Q"
                 )
                 return
-            author = ctx.author
+            author = inter.author
 
             info = await self.bot.players.find_one({"_id": author.id})
             goldget = random.randint(500, 1000) * info["multi_g"]
@@ -227,17 +314,17 @@ class Economy(commands.Cog):
                     await self.bot.players.update_one(
                         {"_id": author.id}, {"$set": info}
                     )
-                    em = discord.Embed(
+                    em = disnake.Embed(
                         description=f"**You received your supporter gold! {int(goldget)} G**",
-                        color=discord.Color.blue(),
+                        color=disnake.Color.blue(),
                     )
                 else:
                     seconds = 86400 - delta
-                    em = discord.Embed(
+                    em = disnake.Embed(
                         description=f"**You can't claim your supporter reward yet!\n\n You can use this command again <t:{int(time.time()) + int(seconds)}:R>**",
-                        color=discord.Color.red(),
+                        color=disnake.Color.red(),
                     )
-                await ctx.send(embed=em)
+                await inter.send(embed=em)
                 break
             except KeyError:
                 info["supporter_block"] = 0

@@ -1,11 +1,10 @@
 python-dotenv~=0.19.2
-discord.py
-dislash.py
+disnake
 humanize~=4.0.0
-jishaku
+disnake-jishaku
 dblpy
 motor~=2.5.1
-umongo
-discordspy
 pymongo[srv]
 aiohttp~=3.7.4.post0
+git+https://github.com/Chromosomologist/disnake-ext-components
+typing-extensions

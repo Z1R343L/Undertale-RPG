@@ -1,6 +1,6 @@
-import discord
+import disnake
 import humanize
-from discord.ext import commands
+from disnake.ext import commands
 
 
 class Leaderboard(commands.Cog):
@@ -9,7 +9,7 @@ class Leaderboard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["lb"])
+    @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def leaderboard(self, ctx, arg: str = "level"):
         """see who's on the lead on gold amount"""
@@ -30,10 +30,10 @@ class Leaderboard(commands.Cog):
                 break
         output.append("")
         result = "\n".join(output)
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title=f"{arg} Leaderboard:",
             description=f"**{result}**",
-            color=discord.Colour.gold(),
+            color=disnake.Colour.gold(),
         )
         await ctx.send(embed=embed)
 

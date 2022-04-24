@@ -47,6 +47,7 @@ async def create_player_info(ctx, mem):
             "location": "ruins",
             "daily_block": 0,
             "supporter_block": 0,
+            "booster_block" : 0,
             "rest_block": 0,
             "standard crate": 1,
             "determination crate": 0,

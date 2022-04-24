@@ -6,6 +6,8 @@ __pycache__/
 # Python libs for stuff
 .local
 .cache
+main.sh
+.replit
 
 # C extensions
 *.so

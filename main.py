@@ -1,28 +1,18 @@
 import os
 
-import discord
-from discord.ext import commands
-from dislash import InteractionClient
+import disnake
+from disnake.ext import commands
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from botTools.loader import _create_guild_info
-from botTools.mHelper import bcolors
+from utility.utils import bcolors
 
 load_dotenv()
 
-DEFUALT_DISABLED_MESSAGE = (
+DEFAULT_DISABLED_MESSAGE = (
     "The bot is currently disabled for an update or an refresh is happening, please. "
     "wait until its back up, you can join our support server to get notified once its backup."
 )
-
-CONCURRENCY_LIMITED_COMMANDS = {
-    "fight",
-    "f",
-    "boss",
-    "fboss",
-    "bossfight"
-}
 
 
 async def is_enabled(ctx):
@@ -30,7 +20,7 @@ async def is_enabled(ctx):
         if ctx.bot.ENABLED:
             return True
 
-        await ctx.send(ctx.bot.WARNING)
+        await ctx.send(DEFAULT_DISABLED_MESSAGE)
         return False
     return True
 
@@ -52,12 +42,12 @@ class UndertaleBot(commands.AutoShardedBot):
         self.vote_url = "https://top.gg/bot/815153881217892372"
         self.currency = "<:doge_coin:864929485295321110>"
         self.add_check(is_enabled)
-        self.activity = discord.Game("Undertale | u?help ")
+        self.activity = disnake.Game("Undertale | /tutorial ")
         self.ENABLED = False
         self.help_command = None
         self.events = None
         self.cmd_list = ["fboss", "bossfight", "boss"]
-        self.fights = []
+        self.fights = {}
 
     async def on_shard_connect(self, shard):
         print(f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN} is connected.{bcolors.ENDC}")
@@ -79,36 +69,24 @@ class UndertaleBot(commands.AutoShardedBot):
         self.db = self.cluster["database"]
         self.players = self.db["players"]
         self.guilds_db = self.db["guilds"]
+        self.boosters = self.db["boosters"]
         print("Database connection established")
         print("db_load task finished")
         return
 
-    # To access to stuff
-
-    # @property
-    # def mongo(self):
-    #    return self.get_cog("Mongo")
-
-
-async def determine_prefix(UT, message):
-    if bot.ENABLED is False:
-        return "u?"
-    if message.guild:
-        data = await _create_guild_info(UT, message.guild)
-        return data["prefix"]
-    return "u?"
-
 
 bot = UndertaleBot(
-    command_prefix=determine_prefix,
+    command_prefix="u?",
     owner_ids=[
         845322234607829032,
         736820906604888096,
         536538183555481601,
         513351917481623572,
     ],
+    test_guilds=[
+        817437132397871135
+    ]
 )
 
-bot.slash = InteractionClient(bot)
 bot.load_extension("jishaku")
 bot.run(bot.BotToken)

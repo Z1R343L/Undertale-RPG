@@ -1,8 +1,8 @@
 import time
 
 import dbl
-from discord.ext import commands
-from botTools.mHelper import bcolors
+from disnake.ext import commands
+from utility.utils import bcolors
 
 
 class TopGG(commands.Cog):
