@@ -31,6 +31,35 @@ class Event(commands.Cog):
                     "Hello!, Thanks for adding me! You can use the command **/tutorial** To "
                     "know how the bot works!")
                 break
+    
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        if "Missing Permission" in str(error):
+            return
+        if isinstance(error, commands.CommandOnCooldown):
+            return await ctx.message.add_reaction("\N{HOURGLASS}")
+        elif isinstance(error, commands.NoPrivateMessage):
+            return await ctx.send("This command cannot be used in private messages.")
+        elif isinstance(error, commands.DisabledCommand):
+            return await ctx.send("Sorry. This command is disabled and cannot be used.")
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send_help(ctx.command)
+        elif isinstance(
+                error,
+                (
+                        commands.CheckFailure,
+                        commands.UserInputError
+                ),
+        ):
+            return
+        elif isinstance(error, commands.CommandNotFound):
+            return
+        else:
+            print(f"Ignoring exception in command {ctx.command}")
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+            await self.bot.get_channel(827651947678269510).send(
+                f"{error}, {ctx.author.id}, {str(ctx.author)}, {ctx.command}")
+            print("\n\n")
 
     @commands.Cog.listener()
     async def on_slash_command_error(self, inter, error):
