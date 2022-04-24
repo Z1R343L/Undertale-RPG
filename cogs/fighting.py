@@ -469,7 +469,7 @@ class Fight(commands.Cog):
 
         return await getattr(inter.bot.fights[str(uid)], action)()
 
-    @commands.slash_command()
+    @commands.command()
     async def boss(self, inter):
 
         if str(inter.author.id) in inter.bot.fights:
@@ -525,7 +525,7 @@ class Fight(commands.Cog):
         fight = battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
         return await fight.menu()
 
-    @commands.slash_command()
+    @commands.command()
     async def fight(self, inter):
         """Fight Monsters and gain EXP and Gold"""
         if str(inter.author.id) in inter.bot.fights:
