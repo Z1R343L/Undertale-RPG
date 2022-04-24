@@ -7,7 +7,7 @@ class HelpCommand(commands.Cog):
         """custom help command for the bot"""
         self.bot = bot
 
-    @commands.slash_command()
+    @commands.command()
     async def tutorial(self, inter):
         embed = disnake.Embed(title="Welcome to Undertale RPG!")
 
@@ -35,7 +35,7 @@ class HelpCommand(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    # @commands.command()
+    @commands.command()
     async def help(self, ctx, command: str = None):
         if command is not None:
             command = self.bot.get_command(command)
