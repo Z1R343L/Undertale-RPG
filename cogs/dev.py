@@ -15,14 +15,14 @@ class Developer_Tools(commands.Cog):
         info = await inter.bot.players.find_one({"_id": member.id})
         await inter.send(info)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def fix(self, inter):
         """Fix, duh?"""
         self.bot.fights = []
         await inter.send("Done!")
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def debug_dat(self, inter, user: disnake.User = None):
         if user is None:
@@ -33,7 +33,7 @@ class Developer_Tools(commands.Cog):
             embed.add_field(name=key, value=data[key])
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def in_fight(self, inter):
         data = inter.bot.fights
@@ -47,7 +47,7 @@ class Developer_Tools(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def vanish(self, inter, user: disnake.User = None):
         if user is None:
