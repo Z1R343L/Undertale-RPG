@@ -473,7 +473,7 @@ class Fight(commands.Cog):
     async def boss(self, inter):
 
         if str(inter.author.id) in inter.bot.fights:
-            await inter.send("You're already in a fight", ephemeral=True)
+            await inter.send(inter.author.mention + " You're already in a fight")
             return
 
         await loader.create_player_info(inter, inter.author)
@@ -529,7 +529,7 @@ class Fight(commands.Cog):
     async def fight(self, inter):
         """Fight Monsters and gain EXP and Gold"""
         if str(inter.author.id) in inter.bot.fights:
-            await inter.send("You're already in a fight", ephemeral=True)
+            await inter.send(inter.author.mention + " You're already in a fight")
             return
 
         await loader.create_player_info(inter, inter.author)
