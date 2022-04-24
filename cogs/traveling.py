@@ -42,7 +42,7 @@ class Traveling(commands.Cog):
             lista.append(
                 Button(
                     label=key.title(),
-                    custom_id=self.selected.build_custom_id(
+                    custom_id=self.t_selected.build_custom_id(
                         place=key.lower(),
                         uid=inter.author.id
                     ),
