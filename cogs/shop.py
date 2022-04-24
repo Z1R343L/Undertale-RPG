@@ -71,7 +71,7 @@ class Shop(commands.Cog):
         self.bot.crates = fileIO("data/crates.json", "load")
         self.bot.boosters = await self.bot.db["boosters"].find_one({"_id": 0})
 
-    @commands.slash_command()
+    @commands.command()
     async def sell(self, inter):
         author = inter.author
         await loader.create_player_info(inter, inter.author)
@@ -162,7 +162,7 @@ class Shop(commands.Cog):
 
         await inter.edit_original_message(components=row)
 
-    @commands.slash_command()
+    @commands.command()
     async def shop(self, inter):
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
@@ -262,7 +262,7 @@ class Shop(commands.Cog):
 
 
 
-    @commands.slash_command()
+    @commands.command()
     async def use(self, inter, *, item: str = None):
         def countoccurrences(stored, value):
             try:
@@ -344,7 +344,7 @@ class Shop(commands.Cog):
         await inter.edit_original_message(components=[new])
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
-    @commands.slash_command()
+    @commands.command()
     async def open(self, inter):
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
