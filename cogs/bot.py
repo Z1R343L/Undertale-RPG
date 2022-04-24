@@ -31,7 +31,7 @@ class Bot(commands.Cog):
         data = {"server_count": len(self.bot.guilds), "shard_count": len(self.bot.shards)}
         await self.dbl_session.post(f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data)
 
-    @commands.slash_command(name="event")
+    @commands.command(name="event")
     async def event(self, inter):
         event = self.bot.events
         if event is None:
@@ -51,7 +51,7 @@ class Bot(commands.Cog):
         embed.set_image(url=banner)
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     async def info(self, inter):
         """information about the bot and more"""
         em = disnake.Embed(color=disnake.Colour.random())
@@ -80,7 +80,7 @@ class Bot(commands.Cog):
         em.set_thumbnail(url=self.bot.user.avatar.url)
         await inter.send(embed=em)
 
-    @commands.slash_command()
+    @commands.command()
     async def vote(self, inter):
         """Vote for the bot for special reward"""
         vt = disnake.Embed(title="<:DT:865088692376829952> Voting", color=0x2ECC71)
@@ -96,7 +96,7 @@ class Bot(commands.Cog):
         )
         await inter.send(embed=vt)
 
-    @commands.slash_command()
+    @commands.command()
     async def invite(self, inter):
         """Invite the bot!!!"""
         e = disnake.Embed(
