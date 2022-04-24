@@ -444,8 +444,16 @@ class Fight(commands.Cog):
             await inter.send('This is not yours kiddo!', ephemeral=True)
             return
 
-        await inter.response.defer()
+        try:
+            await inter.response.defer()
+        except:
+            pass
         if item == "back":
+            msg = await inter.original_message()
+            row = await utils.disable_all(msg)
+
+            await inter.edit_original_message(components=row)
+            
             return await inter.bot.fights[str(uid)].menu()
 
         msg = await inter.original_message()
@@ -460,8 +468,11 @@ class Fight(commands.Cog):
         if inter.author.id != uid:
             await inter.send('This is not yours kiddo!', ephemeral=True)
             return
-
-        await inter.response.defer()
+        
+        try:
+            await inter.response.defer()
+        except:
+            pass
         msg = await inter.original_message()
         row = await utils.disable_all(msg)
 
@@ -523,7 +534,12 @@ class Fight(commands.Cog):
         print(f"{inter.author} has entered a fight")
         fight = battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
-        return await fight.menu()
+        try:
+            await fight.menu()
+        except Exception as e:
+            await inter.bot.get_channel(827651947678269510).send(f"{e}, {str(fight.author)}")
+            await inter.send(inter.author.mention + "You have encountered an error, the developers has been notified.")
+            await fight.end()
 
     @commands.command()
     async def fight(self, inter):
@@ -568,7 +584,12 @@ class Fight(commands.Cog):
         print(f"{inter.author} has entered a fight")
         fight = battle(inter.author, inter.bot, monster, inter, 0, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
-        return await fight.menu()
+        try:
+            await fight.menu()
+        except Exception as e:
+            await inter.bot.get_channel(827651947678269510).send(f"{e}, {str(fight.author)}")
+            await inter.send(inter.author.mention + "You have encountered an error, the developers has been notified.")
+            await fight.end()
 
 
 def setup(bot):
