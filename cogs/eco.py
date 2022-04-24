@@ -52,7 +52,7 @@ class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command()
+    @commands.command()
     async def reset(self, inter):
         await loader.create_player_info(inter, inter.author)
         old_data = await self.bot.players.find_one({"_id": inter.author.id})
@@ -101,7 +101,7 @@ class Economy(commands.Cog):
         else:
             await inter.send("You should come back again!")
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def booster(self, inter):
         """Claim Your daily Reward!"""
@@ -136,7 +136,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em, ephemeral=True)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def daily(self, inter):
         """Claim Your daily Reward!"""
@@ -165,7 +165,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 7, commands.BucketType.user)
     async def gold(self, inter):
         """Check your gold balance"""
@@ -179,7 +179,7 @@ class Economy(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def stats(self, inter, member: disnake.User = None):
         """Check your stats and powers"""
@@ -258,7 +258,7 @@ class Economy(commands.Cog):
         embed.set_thumbnail(url=player.avatar.url)
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     async def inventory(self, inter):
         """Shows your inventory"""
         author = inter.author
@@ -289,7 +289,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def supporter(self, inter):
         """Join our support server and claim a bunch of gold"""
