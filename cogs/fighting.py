@@ -40,7 +40,7 @@ class battle:
 
     # ending the fight with the id
     async def end(self):
-        if str(self.author.id) in self.bot.fights:
+        if str(self.author.id) not in self.bot.fights:
             return
         del self.bot.fights[str(self.author.id)]
 
