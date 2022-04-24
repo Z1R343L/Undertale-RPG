@@ -9,7 +9,7 @@ class Leaderboard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def leaderboard(self, ctx, arg: str = "level"):
         """see who's on the lead on gold amount"""
