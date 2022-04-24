@@ -36,6 +36,7 @@ class battle:
         self.author = author
         self.monster = monster
         self.inter = inter
+        self.time = int(time.time())
         self.kind = kind  # 0 for monster, 1 for boss, 2 for special.
 
     # ending the fight with the id
@@ -531,7 +532,7 @@ class Fight(commands.Cog):
         }
 
         await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
-        print(f"{inter.author} has entered a fight")
+        print(f"{inter.author} has entered a boss fight")
         fight = battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
         try:

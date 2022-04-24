@@ -26,10 +26,16 @@ class Developer_Tools(commands.Cog):
     @commands.is_owner()
     async def in_fight(self, inter):
         data = inter.bot.fights
+        msg = ""
+        
+        for i in data:
+            name = str(data[i].author)
+            since = f"<t:{data[i].time}:T>"
+            msg += f"**Name**: {name}\n**Playing Since**:{since}\n"
 
         embed = disnake.Embed(
             title="list of people inside the fight flag",
-            description=data
+            description=msg
         )
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/900274624594575361/928703846476288120/IMG_0370.png"

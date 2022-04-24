@@ -32,7 +32,6 @@ async def create_player_info(ctx, mem):
             "damage": 0,
             "max_health": 100,
             "monster_hp": 0,
-            "fighting": False,
             "level": 1,
             "resets": 0,
             "kills": 0,
