@@ -24,17 +24,6 @@ class Developer_Tools(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def debug_dat(self, inter, user: disnake.User = None):
-        if user is None:
-            return
-        data = await self.bot.players.find_one({"_id": user.id})
-        embed = disnake.Embed()
-        for key in data:
-            embed.add_field(name=key, value=data[key])
-        await inter.send(embed=embed)
-
-    @commands.command()
-    @commands.is_owner()
     async def in_fight(self, inter):
         data = inter.bot.fights
 
