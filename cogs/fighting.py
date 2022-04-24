@@ -521,8 +521,8 @@ class Fight(commands.Cog):
 
         await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a fight")
-        inter.bot.fights.append(inter.author.id)
         fight = battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
+        fight.bot.fights[str(inter.author.id)] = fight
         return await fight.menu()
 
     @commands.command()
