@@ -185,8 +185,8 @@ class Economy(commands.Cog):
         """Check your stats and powers"""
         player = member or inter.author
         if player.bot:
-          await inter.send("Nice try!", ephemeral=True)
-          return
+            await inter.send("Nice try!")
+            return
         await loader.create_player_info(inter, player)
         info = await self.bot.players.find_one({"_id": player.id})
 

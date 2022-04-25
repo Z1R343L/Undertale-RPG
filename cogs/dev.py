@@ -8,7 +8,7 @@ class Developer_Tools(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def spit(self, inter, member: disnake.User = None):
         member = member or inter.author
