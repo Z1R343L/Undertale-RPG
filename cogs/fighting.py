@@ -116,7 +116,7 @@ class battle:
         image = self.bot.monsters[monster]["im"]
         embed.set_thumbnail(url=image)
 
-        await self.inter.send(self.author.mention, embed=embed, components=buttons)
+        await self.inter.send(self.author.mention, embed=embed, components=buttons, delete_after=1800)
 
     async def attack(self):
         event = self.bot.events
@@ -173,10 +173,10 @@ class battle:
                 embed.description += f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
             # booster
             if self.author.id in self.bot.boosters["boosters"]:
-                exp = exp * 4
-                gold = gold * 4
-                embed.description += (f"\n\n**[BOOSTER MULTIPLIER]**\n> **[4x]** XP: **+{int(exp - enemy_xp)}**"
-                                      f" ({int(exp)})\n> **[4x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+                exp = exp * 2
+                gold = gold * 2
+                embed.description += (f"\n\n**[BOOSTER MULTIPLIER]**\n> **[2x]** XP: **+{int(exp - enemy_xp)}**"
+                                      f" ({int(exp)})\n> **[2x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
                                       )
 
 
@@ -372,7 +372,7 @@ class battle:
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
 
-        await self.channel.send(embed=embed, components=rows)
+        await self.channel.send(embed=embed, components=rows, delete_after=1800)
 
     async def spare(self):
         try:

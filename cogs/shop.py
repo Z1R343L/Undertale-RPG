@@ -8,7 +8,26 @@ from disnake.ui import Button, ActionRow
 import utility.loader as loader
 from utility.dataIO import fileIO
 from utility import utils
+import time
 
+class FightReturn(disnake.ui.View):
+    def __init__(self, bot, author):
+        super().__init__()
+        self.bot = bot
+        self.author = author
+        
+        
+        
+    @disnake.ui.button(label="Return to fight")
+    async def return_to(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
+        if inter.author.id != self.author.id:
+            await inter.send("this is not your's kiddo!", ephemeral=True)
+            return
+        
+        button.disabled = True
+        await inter.response.edit_message(view=self)
+        await self.bot.fights[str(inter.author.id)].menu()
+        
 
 class Shop(commands.Cog):
     def __init__(self, bot):
@@ -73,6 +92,15 @@ class Shop(commands.Cog):
 
     @commands.command()
     async def sell(self, inter):
+        if str(inter.author.id) in inter.bot.fights:
+            tm = inter.bot.fights[str(inter.author.id)].time
+            curr_time = time.time()
+            delta = int(curr_time) - tm
+            if delta >= 1800:
+                buttn = FightReturn(bot=self.bot, author=inter.author)
+                return await inter.send("You have been in a fight for quite a while right now, Wanna finish this fight?", view=buttn)
+            await inter.send(inter.author.mention + " You're in a fight, You cannot use that!")
+            return
         author = inter.author
         await loader.create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": author.id})
@@ -164,6 +192,15 @@ class Shop(commands.Cog):
 
     @commands.command()
     async def shop(self, inter):
+        if str(inter.author.id) in inter.bot.fights:
+            tm = inter.bot.fights[str(inter.author.id)].time
+            curr_time = time.time()
+            delta = int(curr_time) - tm
+            if delta >= 1800:
+                buttn = FightReturn(bot=self.bot, author=inter.author)
+                return await inter.send("You have been in a fight for quite a while right now, Wanna finish this fight?", view=buttn)
+            await inter.send(inter.author.mention + " You're in a fight, You cannot use that!")
+            return
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
         if len(data["inventory"]) >= 10:
@@ -264,6 +301,15 @@ class Shop(commands.Cog):
 
     @commands.command()
     async def use(self, inter, *, item: str = None):
+        if str(inter.author.id) in inter.bot.fights:
+            tm = inter.bot.fights[str(inter.author.id)].time
+            curr_time = time.time()
+            delta = int(curr_time) - tm
+            if delta >= 1800:
+                buttn = FightReturn(bot=self.bot, author=inter.author)
+                return await inter.send("You have been in a fight for quite a while right now, Wanna finish this fight?", view=buttn)
+            await inter.send(inter.author.mention + " You're in a fight, You cannot use that!")
+            return
         def countoccurrences(stored, value):
             try:
                 stored[value] = stored[value] + 1
