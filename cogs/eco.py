@@ -76,11 +76,11 @@ class Economy(commands.Cog):
         embed.set_image(
             "https://static.wikia.nocookie.net/xtaleunderverse4071/images/c/c4/UnderverseReset.jpg"
         )
-        embed.set_thumbnail(inter.author.avatar.url)
+        embed.set_thumbnail(inter.author.display_avatar)
 
         embed.set_footer(text=datetime.utcnow(), icon_url=inter.bot.user.avatar.url)
 
-        embed.set_author(name=f"executed by {str(inter.author)}", icon_url=inter.author.avatar.url)
+        embed.set_author(name=f"executed by {str(inter.author)}", icon_url=inter.author.display_avatar)
         view = Choice(inter.author)
         await inter.send(embed=embed, view=view)
         await view.wait()
@@ -255,7 +255,7 @@ class Economy(commands.Cog):
         embed.add_field(name="▫️┃Gold Multiplier", value=f"{round(g_mult, 1)}x")
         embed.add_field(name="▫️┃XP Multiplier", value=f"{round(xp_mult, 1)}x")
 
-        embed.set_thumbnail(url=player.avatar.url)
+        embed.set_thumbnail(url=player.display_avatar)
         await inter.send(embed=embed)
 
     @commands.command()
@@ -285,7 +285,7 @@ class Economy(commands.Cog):
         em = disnake.Embed(title="Your Inventory", color=disnake.Colour.random())
         em.add_field(name="▫️┃Gold:", value=f"**{int(gold)}**", inline=False)
         em.add_field(name="📦┃Items:", value=f"**{inventory}**", inline=False)
-        em.set_thumbnail(url=inter.author.avatar.url)
+        em.set_thumbnail(url=inter.author.display_avatar)
 
         await inter.send(embed=em)
 

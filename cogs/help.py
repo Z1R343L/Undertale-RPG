@@ -71,7 +71,7 @@ class HelpCommand(commands.Cog):
             )
         emb.set_footer(
             text=f"{ctx.prefix}help <category> or <command>",
-            icon_url=ctx.author.avatar.url,
+            icon_url=ctx.author.display_avatar,
         )
 
         emb.set_image(
