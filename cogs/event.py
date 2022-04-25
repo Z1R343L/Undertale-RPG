@@ -5,6 +5,8 @@ from disnake.ext import commands
 import disnake
 
 import utility.loader as loader
+import traceback
+import sys
 
 importlib.reload(loader)
 

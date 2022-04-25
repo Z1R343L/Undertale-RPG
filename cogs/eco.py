@@ -130,11 +130,11 @@ class Economy(commands.Cog):
         else:
             seconds = 86400 - delta
             em = disnake.Embed(
-                description=f"**You can't claim your daily reward yet!\n\nYou can claim your booster reward <t:{int(time.time()) + int(seconds)}:R>**",
+                description=f"**You can't claim your booster reward yet!\n\nYou can claim your booster reward <t:{int(time.time()) + int(seconds)}:R>**",
                 color=disnake.Color.red(),
             )
 
-        await inter.send(embed=em, ephemeral=True)
+        await inter.send(embed=em)
 
     @commands.command()
     @commands.cooldown(1, 12, commands.BucketType.user)
@@ -297,7 +297,7 @@ class Economy(commands.Cog):
         while True:
             if inter.guild.id != 817437132397871135:
                 await inter.send(
-                    "this slash_command is exclusive for our server, you can join via \n\n https://discord.gg/FQYVpuNz4Q"
+                    "this command is exclusive for our server, you can join via \n\n https://discord.gg/FQYVpuNz4Q"
                 )
                 return
             author = inter.author
