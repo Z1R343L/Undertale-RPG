@@ -90,7 +90,7 @@ class Shop(commands.Cog):
         self.bot.crates = fileIO("data/crates.json", "load")
         self.bot.boosters = await self.bot.db["boosters"].find_one({"_id": 0})
 
-    @commands.command()
+    @commands.command(alaises=["sellshop", "s"])
     async def sell(self, inter):
         if str(inter.author.id) in inter.bot.fights:
             tm = inter.bot.fights[str(inter.author.id)].time
@@ -190,7 +190,7 @@ class Shop(commands.Cog):
 
         await inter.edit_original_message(components=row)
 
-    @commands.command()
+    @commands.command(aliases=["buy"])
     async def shop(self, inter):
         if str(inter.author.id) in inter.bot.fights:
             tm = inter.bot.fights[str(inter.author.id)].time
@@ -299,7 +299,7 @@ class Shop(commands.Cog):
 
 
 
-    @commands.command()
+    @commands.command(aliases=["consume", "heal", "equip"])
     async def use(self, inter, *, item: str = None):
         if str(inter.author.id) in inter.bot.fights:
             tm = inter.bot.fights[str(inter.author.id)].time
@@ -390,7 +390,7 @@ class Shop(commands.Cog):
         await inter.edit_original_message(components=[new])
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
-    @commands.command()
+    @commands.command(aliases=["opencrate", "open_crate", "crate"])
     async def open(self, inter):
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})

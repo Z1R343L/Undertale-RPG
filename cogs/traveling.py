@@ -18,7 +18,7 @@ class Traveling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=["tv"])
     @commands.cooldown(1, 6, commands.BucketType.user)
     async def travel(self, inter):
         """Travel to other spots of the world"""

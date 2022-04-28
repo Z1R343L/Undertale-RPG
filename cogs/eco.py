@@ -165,7 +165,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.command()
+    @commands.command(aliases=["bal", "balance"])
     @commands.cooldown(1, 7, commands.BucketType.user)
     async def gold(self, inter):
         """Check your gold balance"""
@@ -179,7 +179,7 @@ class Economy(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["level", "progress", "lvl", "stat", "profile"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def stats(self, inter, member: disnake.User = None):
         """Check your stats and powers"""
@@ -258,7 +258,7 @@ class Economy(commands.Cog):
         embed.set_thumbnail(url=player.display_avatar)
         await inter.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["inv"])
     async def inventory(self, inter):
         """Shows your inventory"""
         author = inter.author
@@ -289,7 +289,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.command()
+    @commands.command(aliases=["sp"])
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def supporter(self, inter):
         """Join our support server and claim a bunch of gold"""

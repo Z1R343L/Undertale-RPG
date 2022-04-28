@@ -162,21 +162,22 @@ class battle:
             await asyncio.sleep(1)
             embed = disnake.Embed(
                 title="You Won!",
-                description=f"You Earned **{int(enemy_gold)} G** and **{int(enemy_xp)}XP**",
+                description=f"You Earned **{int(enemy_xp)} XP** and **{int(enemy_gold)} G**",
                 color=disnake.Colour.gold(),
             )
             embed.set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/850983850665836544/878997428840329246/image0.png"
             )
-            xp_multi = int(info["multi_xp"])
-            gold_multi = int(info["multi_g"])
+            xp_multi = round(info["multi_xp"], 1)
+            gold_multi = round(info["multi_g"], 1)
             gold = enemy_gold
             exp = enemy_xp
             # Multiplier
             if info["multi_g"] > 1 and info["multi_xp"] > 1:
                 gold = gold * info["multi_xp"]
                 exp = exp * info["multi_g"]
-                embed.description += f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+                embed.description += (f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}**"
+                                      f" ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})")
             # booster
             if self.author.id in self.bot.boosters["boosters"]:
                 exp = exp * 2
@@ -192,7 +193,8 @@ class battle:
                 exp = exp * event["multi_xp"]
                 name = event["name"]
 
-                embed.description += f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}** ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+                embed.description += (f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}**"
+                                     f"({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})")
 
             info["selected_monster"] = None
             info["monster_hp"] = 0
@@ -486,7 +488,7 @@ class Fight(commands.Cog):
 
         return await getattr(inter.bot.fights[str(uid)], action)()
 
-    @commands.command()
+    @commands.command(aliases=["fboss", "bossfight", "fightboss"])
     async def boss(self, inter):
 
         if str(inter.author.id) in inter.bot.fights:
@@ -547,7 +549,7 @@ class Fight(commands.Cog):
             await inter.send(inter.author.mention + "You have encountered an error, the developers has been notified.")
             await fight.end()
 
-    @commands.command()
+    @commands.command(aliases=["f", "battle", "monster"])
     async def fight(self, inter):
         """Fight Monsters and gain EXP and Gold"""
         if str(inter.author.id) in inter.bot.fights:
