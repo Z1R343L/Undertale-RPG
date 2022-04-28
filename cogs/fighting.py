@@ -52,33 +52,39 @@ class battle:
         lvl = info["level"]
         lvlexp = num * lvl
         if xp >= lvlexp:
-            info["level"] = info["level"] + 1
+
+            new_level = info["level"] + 1
             info["max_health"] = info["max_health"] + 4
-            new_lvl = info["level"]
-            new_dmg = info["damage"]
+            new_dmg = info["damage"] + 1
+            new_health = info["max_health"] + 4
+            new_xp = xp - lvlexp
 
             data = {
-                "level": info["level"],
+                "level": new_level,
                 "exp": xp - lvlexp,
-                "max_health": info["max_health"] + 4,
-                "damage": info["damage"] + 1
+                "max_health": new_health,
+                "damage": new_dmg
             }
             await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
+            if new_xp >= num * new_level:
+                return await self.check_levelup()
+
             embed = disnake.Embed(
                 title="LOVE Increased",
-                description=f"Your LOVE Increased to **{new_lvl}**\nDamage increased to {new_dmg}",
+                description=(f"Your LOVE Increased to **{new_level}**\nDamage increased by 1"
+                             f"\nHealth increased by 4"),
                 color=disnake.Colour.red(),
             )
             await self.channel.send(self.author.mention, embed=embed)
             for i in self.bot.locations:
                 if self.bot.locations[i]["RQ_LV"] == info["level"]:
+                    await asyncio.sleep(3)
                     await self.channel.send(
                         f"{self.author.mention}\n\n" + 
-                        f"Congrats, You unlocked {i}, you can go there by running /travel"
+                        f"Congrats, You unlocked {i}, you can go there by running u?travel"
                     )
-            return await self.check_levelup()
-        else:
-            return
+            return True
+        return False
 
     async def menu(self):
 
@@ -178,7 +184,6 @@ class battle:
                 embed.description += (f"\n\n**[BOOSTER MULTIPLIER]**\n> **[2x]** XP: **+{int(exp - enemy_xp)}**"
                                       f" ({int(exp)})\n> **[2x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
                                       )
-
 
             if event is not None:
                 xp_multi = int(event["multi_xp"])
@@ -439,7 +444,7 @@ class Fight(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @components.component_listener()
+    @components.button_listener()
     async def food(self, inter: disnake.MessageInteraction, item: str, uid: int) -> None:
         if inter.author.id != uid:
             await inter.send('This is not yours kiddo!', ephemeral=True)
@@ -464,7 +469,7 @@ class Fight(commands.Cog):
 
         return await getattr(inter.bot.fights[str(uid)], inter.bot.items[item]["func"])(item)
 
-    @components.component_listener()
+    @components.button_listener()
     async def action(self, inter: disnake.MessageInteraction, action: str, uid: int) -> None:
         if inter.author.id != uid:
             await inter.send('This is not yours kiddo!', ephemeral=True)

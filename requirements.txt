@@ -4,7 +4,7 @@ humanize~=4.0.0
 disnake-jishaku
 dblpy
 motor~=2.5.1
+topggpy
 pymongo[srv]
-aiohttp~=3.7.4.post0
 git+https://github.com/Chromosomologist/disnake-ext-components
 typing-extensions

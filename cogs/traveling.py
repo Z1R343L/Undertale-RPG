@@ -74,7 +74,7 @@ class Traveling(commands.Cog):
         em.description += f"\nYour current location is **{loc.title()}**"
         await inter.send(embed=em, components=rows)
 
-    @components.component_listener()
+    @components.button_listener()
     async def t_selected(self, inter: disnake.MessageInteraction, place: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)

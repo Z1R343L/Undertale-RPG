@@ -13,25 +13,25 @@ class HelpCommand(commands.Cog):
 
         text1 = "**This bot is an Undertale Themed RPG!, You can fight monsters from Undertale on discord!**"
 
-        text2 = f"You can run the command **/fight** To fight any monster in your area"
+        text2 = f"You can run the command **{inter.prefix}fight** To fight any monster in your area"
 
-        text3 = f"Speaking of areas?, You can travel to other places using **/travel** command!, You gotta " \
+        text3 = f"Speaking of areas?, You can travel to other places using **{inter.prefix}travel** command!, You gotta " \
                 f"grind well tho!, On **'Level' 3**, You will unlock snowdin "
 
-        text4 = f"You can run the command **/shop** To buy armor, weapons, and food with **gold**"
+        text4 = f"You can run the command **{inter.prefix}shop** To buy armor, weapons, and food with **gold**"
 
-        text5 = f"You can use the command **/help** to see other commands!"
+        text5 = f"You can use the command **{inter.prefix}help** to see other commands!"
 
-        text6 = f"There are rewards commands, **/daily & /supporter**, You can earn based on your level"
-        text7 = f"There is a command called **/reset**, reach level 70, and you can get multiplier for EXP " \
+        text6 = f"There are rewards commands, **{inter.prefix}daily & {inter.prefix}supporter**, You can earn based on your level"
+        text7 = f"There is a command called **{inter.prefix}reset**, reach level 70, and you can get multiplier for EXP " \
                 f"and GOLD!! "
-        text8 = f"You can vote to get crates!, run the command **/vote**, then vote for us, then run the " \
-                f"command **/crate** to open your crates "
+        text8 = f"You can vote to get crates!, run the command **{inter.prefix}vote**, then vote for us, then run the " \
+                f"command **{inter.prefix}crate** to open your crates "
 
         embed.description = f"{text1}\n\n{text2}\n\n{text3}\n\n{text4}\n\n{text5}\n\n{text6}\n\n{text7}\n\n{text8}"
 
         embed.set_image(
-            url="https://cdn.discordapp.com/attachments/827651835372240986/906433674558455818/IMG_0173.jpg"
+            url="https://cdn.discordapp.comu?attachmentsu?827651835372240986u?906433674558455818u?IMG_0173.jpg"
         )
         await inter.send(embed=embed)
 
@@ -64,8 +64,8 @@ class HelpCommand(commands.Cog):
             if cog.qualified_name in forbid:
                 continue
 
-            commands = cog.get_commands()
-            commands_per = "".join(f" `{command}` • " for command in commands)
+            cmds = cog.get_commands()
+            commands_per = "".join(f" `{command}` • " for command in cmds)
             emb.add_field(
                 name=cog.qualified_name, value=f"• {commands_per} \n\n", inline=False
             )
@@ -75,7 +75,7 @@ class HelpCommand(commands.Cog):
         )
 
         emb.set_image(
-            url="https://cdn.discordapp.com/attachments/850983850665836544/874667836985966682/image0.png"
+            url="https://cdn.discordapp.comu?attachmentsu?850983850665836544u?874667836985966682u?image0.png"
         )
         await ctx.send(embed=emb)
 

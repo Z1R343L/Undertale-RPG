@@ -42,7 +42,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.vote_url = "https://top.gg/bot/815153881217892372"
         self.currency = "<:doge_coin:864929485295321110>"
         self.add_check(is_enabled)
-        self.activity = disnake.Game("Undertale | /tutorial ")
+        self.activity = disnake.Game("Undertale | u?help ")
         self.ENABLED = False
         self.help_command = None
         self.events = None

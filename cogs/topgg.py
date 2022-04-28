@@ -1,6 +1,6 @@
 import time
 
-import dbl
+import topgg
 from disnake.ext import commands
 from utility.utils import bcolors
 
@@ -13,7 +13,7 @@ class TopGG(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.bot.topggpy = dbl.DBLClient(
+        self.bot.topggpy = topgg.DBLClient(
             self.bot,
             self.bot.TopGGToken,
             webhook_path="/dblwebhook",

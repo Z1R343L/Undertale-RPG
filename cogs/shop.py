@@ -148,7 +148,7 @@ class Shop(commands.Cog):
 
         await inter.send(embed=embed, components=rows)
 
-    @components.component_listener()
+    @components.button_listener()
     async def s_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -177,7 +177,7 @@ class Shop(commands.Cog):
 
         await inter.edit_original_message(components=row)
 
-    @components.component_listener()
+    @components.button_listener()
     async def shutdown(self, inter: disnake.MessageInteraction, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -253,7 +253,7 @@ class Shop(commands.Cog):
             rows.append(ActionRow(*lista[i: i + 5]))
         await inter.send(embed=embed, components=rows)
 
-    @components.component_listener()
+    @components.button_listener()
     async def selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -378,7 +378,7 @@ class Shop(commands.Cog):
 
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
-    @components.component_listener()
+    @components.button_listener()
     async def u_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
@@ -448,7 +448,7 @@ void crates: {void}
         )
         await inter.send(embed=embed, components=[row])
 
-    @components.component_listener()
+    @components.button_listener()
     async def c_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)

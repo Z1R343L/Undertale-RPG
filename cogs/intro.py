@@ -125,7 +125,7 @@ class MyCog(commands.Cog):
             )
         )
 
-    @components.component_listener()
+    @components.button_listener()
     async def intro_controller(self, inter: disnake.MessageInteraction, act: str, uid: str) -> None:
         if act == "intro_exit":
             if inter.author.id != int(uid):
