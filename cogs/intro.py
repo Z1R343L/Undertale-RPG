@@ -110,7 +110,7 @@ async def intro_proc_nav(inter: disnake.MessageCommandInteraction, val: int, uid
     )
 
 
-class MyCog(commands.Cog):
+class Intro(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -142,4 +142,4 @@ class MyCog(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(MyCog(bot))
+    bot.add_cog(Intro(bot))
