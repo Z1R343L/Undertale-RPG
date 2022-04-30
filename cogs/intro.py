@@ -78,19 +78,19 @@ def intro_build_comps(author_id: str, index: int) -> list:
         disnake.ui.Button(
             style=disnake.ButtonStyle.gray,
             label='<',
-            custom_id=MyCog.intro_controller.build_custom_id(act="intro_left", uid=author_id),
+            custom_id=Intro.intro_controller.build_custom_id(act="intro_left", uid=author_id),
             disabled=disable_l
         ),
         disnake.ui.Button(
             style=disnake.ButtonStyle.gray,
             label='>',
-            custom_id=MyCog.intro_controller.build_custom_id(act="intro_right", uid=author_id),
+            custom_id=Intro.intro_controller.build_custom_id(act="intro_right", uid=author_id),
             disabled=disable_r
         ),
         disnake.ui.Button(
             style=disnake.ButtonStyle.danger,
             label='x',
-            custom_id=MyCog.intro_controller.build_custom_id(act="intro_exit", uid=author_id),
+            custom_id=Intro.intro_controller.build_custom_id(act="intro_exit", uid=author_id),
         ),
     ]
 
