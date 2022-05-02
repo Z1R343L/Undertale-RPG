@@ -13,13 +13,8 @@ class TopGG(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.bot.topggpy = topgg.DBLClient(
-            self.bot,
-            self.bot.TopGGToken,
-            webhook_path="/dblwebhook",
-            webhook_auth="dady2005",
-            webhook_port=55111,
-        )
+        self.bot.topggpy = topgg.WebhookManager(bot).dbl_webhook("/dblwebhook", "dady2005")
+        bot.topggpy.run(55111)
 
     @commands.Cog.listener()
     async def on_dbl_vote(self, data):
