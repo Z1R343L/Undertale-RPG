@@ -122,7 +122,17 @@ class battle:
         image = self.bot.monsters[monster]["im"]
         embed.set_thumbnail(url=image)
 
-        await self.inter.send(self.author.mention, embed=embed, components=buttons, delete_after=1800)
+        msg = await self.inter.send(self.author.mention, embed=embed, components=buttons)
+        
+        self.waiting = True
+        await asyncio.sleep(60)
+        
+        if self.waiting:
+            row = await utils.disable_all(msg)
+
+            await msg.edit(content="You took to long to reply", components=row)
+            return await self.end()
+        return
 
     async def attack(self):
         event = self.bot.events
@@ -485,6 +495,7 @@ class Fight(commands.Cog):
         row = await utils.disable_all(msg)
 
         await inter.edit_original_message(components=row)
+        inter.bot.fights[str(uid)].waiting = False
 
         return await getattr(inter.bot.fights[str(uid)], action)()
 
