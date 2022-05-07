@@ -32,7 +32,6 @@ class FightReturn(disnake.ui.View):
 class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.data_task.start()
 
     async def weapon(self, inter, item):
         data = await self.bot.players.find_one({"_id": inter.author.id})
@@ -81,14 +80,6 @@ class Shop(commands.Cog):
         return await inter.send(
             f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
         )
-
-    @tasks.loop(seconds=5)
-    async def data_task(self):
-        self.bot.items = fileIO("data/items/items.json", "load")
-        self.bot.monsters = fileIO("data/stats/monsters.json", "load")
-        self.bot.locations = fileIO("data/traveling.json", "load")
-        self.bot.crates = fileIO("data/crates.json", "load")
-        self.bot.boosters = await self.bot.db["boosters"].find_one({"_id": 0})
 
     @commands.command(alaises=["sellshop", "s"])
     async def sell(self, inter):

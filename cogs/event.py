@@ -1,10 +1,11 @@
 import datetime
 import importlib
 
-from disnake.ext import commands
+from disnake.ext import commands, tasks
 import disnake
 
 import utility.loader as loader
+from utility.dataIO import fileIO
 import traceback
 import sys
 
@@ -14,6 +15,7 @@ importlib.reload(loader)
 class Event(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.data_task.start()
         self.last_timeStamp = datetime.datetime.utcfromtimestamp(0)
         self.old_lst = ['u?close', 'u?ping', 'u?latency', 'u?cleanup', 'u?sell', 'u?shop',
                         'u?buy', 'u?tutorial', 'u?use', 'u?consume', 'u?heal', 'u?equip', 'u?open',
@@ -25,12 +27,21 @@ class Event(commands.Cog):
                         'u?vanish', 'u?supporter', 'u?sp', 'u?vote', 'u?database_count', 'u?fight', 'u?f',
                         'u?boss', 'u?fboss', 'u?bossfight', 'u?clearinv', 'u?invite', 'u?support']
 
+    @tasks.loop(seconds=5)
+    async def data_task(self):
+        self.bot.items = fileIO("data/items/items.json", "load")
+        self.bot.monsters = fileIO("data/stats/monsters.json", "load")
+        self.bot.locations = fileIO("data/traveling.json", "load")
+        self.bot.crates = fileIO("data/crates.json", "load")
+        self.bot.shopping = fileIO("data/shops.json", "load")
+        self.bot.boosters = await self.bot.db["boosters"].find_one({"_id": 0})
+
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         for channel in guild.text_channels:
             if channel.permissions_for(guild.me).send_messages:
                 await channel.send(
-                    "Hello!, Thanks for adding me! You can use the command **/tutorial** To "
+                    "Hello!, Thanks for adding me! You can use the command **u?tutorial** To "
                     "know how the bot works!")
                 break
     
