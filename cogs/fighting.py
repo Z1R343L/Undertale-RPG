@@ -126,7 +126,7 @@ class battle:
         msg = await self.inter.send(self.author.mention, embed=embed, components=buttons)
 
         self.menus.append(msg.id)
-        await asyncio.sleep(10)
+        await asyncio.sleep(60)
         
         if msg.id in self.menus:
             row = await utils.disable_all(msg)
