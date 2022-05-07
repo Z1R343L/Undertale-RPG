@@ -86,9 +86,7 @@ class Traveling(commands.Cog):
         await inter.response.defer()
 
         if answer == "end":
-            msg = await inter.original_message()
-            comps = await utility.utils.disable_all(msg)
-            await inter.edit_original_message(components=comps)
+            await inter.edit_original_message(components=[])
             return await inter.send("closed", ephemeral=True)
 
         if answer == info["location"]:
@@ -106,9 +104,7 @@ class Traveling(commands.Cog):
                 description=f"**{inter.author.name}\n\nYou have arrived {answer}**",
                 color = disnake.Color.red(),
             )
-            msg = await inter.original_message()
-            comps = await utility.utils.disable_all(msg)
-            await inter.edit_original_message(components=comps)
+            await inter.edit_original_message(components=[])
 
             return await inter.send(embed=em)
 

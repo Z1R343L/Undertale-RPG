@@ -173,9 +173,8 @@ class Shop(commands.Cog):
         await inter.send(f"You sold {item} for {round(returned, 1)} G", ephemeral=True)
 
         msg = await inter.original_message()
-        row = await utils.disable_all(msg)
 
-        await inter.edit_original_message(components=row)
+        await inter.edit_original_message(components=[])
 
     @components.button_listener()
     async def shutdown(self, inter: disnake.MessageInteraction, uid: str) -> None:
@@ -185,10 +184,7 @@ class Shop(commands.Cog):
 
         await inter.response.defer()
 
-        msg = await inter.original_message()
-        row = await utils.disable_all(msg)
-
-        await inter.edit_original_message(components=row)
+        await inter.edit_original_message(components=[])
 
     @commands.command(aliases=["buy"])
     async def shop(self, inter):
@@ -385,9 +381,8 @@ class Shop(commands.Cog):
             return
 
         await inter.response.defer()
-        msg = await inter.original_message()
-        new = await utils.disable_all(msg)
-        await inter.edit_original_message(components=[new])
+
+        await inter.edit_original_message(components=[])
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
     @commands.command(aliases=["opencrate", "open_crate", "crate"])

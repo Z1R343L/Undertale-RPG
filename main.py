@@ -76,7 +76,7 @@ class UndertaleBot(commands.AutoShardedBot):
 
 
 bot = UndertaleBot(
-    command_prefix="u?",
+    command_prefix="u!",
     owner_ids=[
         845322234607829032,
         736820906604888096,

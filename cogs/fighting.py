@@ -129,9 +129,8 @@ class battle:
         await asyncio.sleep(60)
         
         if msg.id in self.menus:
-            row = await utils.disable_all(msg)
 
-            await msg.edit(content=f"{self.author.mention} You took to long to reply", components=row)
+            await msg.edit(content=f"{self.author.mention} You took to long to reply", components=[])
             return await self.end()
         return
 
@@ -469,16 +468,14 @@ class Fight(commands.Cog):
             pass
         if item == "back":
             msg = await inter.original_message()
-            row = await utils.disable_all(msg)
 
-            await inter.edit_original_message(components=row)
+            await inter.edit_original_message(components=[])
             
             return await inter.bot.fights[str(uid)].menu()
 
         msg = await inter.original_message()
-        row = await utils.disable_all(msg)
 
-        await inter.edit_original_message(components=row)
+        await inter.edit_original_message(components=[])
 
         return await getattr(inter.bot.fights[str(uid)], inter.bot.items[item]["func"])(item)
 
@@ -493,9 +490,8 @@ class Fight(commands.Cog):
         except:
             pass
         msg = await inter.original_message()
-        row = await utils.disable_all(msg)
 
-        await inter.edit_original_message(components=row)
+        await inter.edit_original_message(components=[])
         inter.bot.fights[str(uid)].menus.remove(msg.id)
 
         return await getattr(inter.bot.fights[str(uid)], action)()

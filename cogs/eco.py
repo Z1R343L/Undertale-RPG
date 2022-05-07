@@ -28,9 +28,8 @@ class Choice(disnake.ui.View):
         self.choice = True
         await inter.response.defer()
         msg = await inter.original_message()
-        row = await disable_all(msg)
 
-        await inter.edit_original_message(components=row)
+        await inter.edit_original_message(components=[])
         self.stop()
 
     @disnake.ui.button(label="No", style=disnake.ButtonStyle.red)
@@ -41,9 +40,8 @@ class Choice(disnake.ui.View):
 
         await inter.response.defer()
         msg = await inter.original_message()
-        row = await disable_all(msg)
 
-        await inter.edit_original_message(components=row)
+        await inter.edit_original_message(components=[])
         self.stop()
 
 class Economy(commands.Cog):
