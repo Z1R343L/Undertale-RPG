@@ -38,6 +38,7 @@ class battle:
         self.inter = inter
         self.time = int(time.time())
         self.kind = kind  # 0 for monster, 1 for boss, 2 for special.
+        self.menus = []
 
     # ending the fight with the id
     async def end(self):
@@ -123,14 +124,14 @@ class battle:
         embed.set_thumbnail(url=image)
 
         msg = await self.inter.send(self.author.mention, embed=embed, components=buttons)
+
+        self.menus.append(msg.id)
+        await asyncio.sleep(10)
         
-        self.waiting = True
-        await asyncio.sleep(60)
-        
-        if self.waiting:
+        if msg.id in self.menus:
             row = await utils.disable_all(msg)
 
-            await msg.edit(content="You took to long to reply", components=row)
+            await msg.edit(content=f"{self.author.mention} You took to long to reply", components=row)
             return await self.end()
         return
 
@@ -495,7 +496,7 @@ class Fight(commands.Cog):
         row = await utils.disable_all(msg)
 
         await inter.edit_original_message(components=row)
-        inter.bot.fights[str(uid)].waiting = False
+        inter.bot.fights[str(uid)].menus.remove(msg.id)
 
         return await getattr(inter.bot.fights[str(uid)], action)()
 
