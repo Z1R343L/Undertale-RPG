@@ -12,24 +12,6 @@ class bcolors:
     BOLD = '\033[1m'
     UNDER = '\033[4m'
 
-
-async def disable_all(msg):
-    new = []
-    rows = []
-    for i in msg.components:
-        for b in i.children:
-            b.disabled = True
-            b = Button.from_component(b)
-            new.append(b)
-            print(b)
-
-    for i in range(0, len(new), 5):
-        rows.append(ActionRow(*new[i: i + 5]))
-        print(rows)
-
-    return rows
-
-
 async def get_bar(health, max_health):
     bar0 = "<:0_:899376245496758343>"
     bar2 = "<:2_:899376429568000040>"
