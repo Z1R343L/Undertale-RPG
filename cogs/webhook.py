@@ -6,10 +6,6 @@ from utility.utils import bcolors
 
 
 class TopGG(commands.Cog):
-    """
-    This example uses dblpy's webhook system.
-    In order to run the webhook, at least webhook_port must be specified (number between 1024 and 49151).
-    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -30,7 +26,6 @@ class TopGG(commands.Cog):
         await self.bot.players.update_one({"_id": voter.id}, {"$set": info})
         print(f"{bcolors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{bcolors.ENDC}")
 
-
     @commands.Cog.listener()
     async def on_dbl_test(self, data):
         vote_data = data
@@ -40,13 +35,6 @@ class TopGG(commands.Cog):
         info["standard crate"] += 1
         await self.bot.players.update_one({"_id": voter.id}, {"$set": info})
         print(f"{bcolors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{bcolors.ENDC}")
-
-    @commands.command()
-    @commands.is_owner()
-    async def close(self, ctx):
-        await self.bot.topggpy.close()
-        await ctx.reply("closed the webhook")
-
 
 def setup(bot):
     bot.add_cog(TopGG(bot))
