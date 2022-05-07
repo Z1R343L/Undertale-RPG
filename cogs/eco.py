@@ -6,7 +6,7 @@ import disnake
 from disnake.ext import commands
 
 import utility.loader as loader
-from utility.utils import get_bar, disable_all
+from utility.utils import get_bar
 
 from datetime import datetime
 
