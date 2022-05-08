@@ -279,8 +279,8 @@ class ShopCog(commands.Cog):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        msg = await inter.original_message()
-        inter.bot.shops[uid].menus.remove(msg.id)
+        msg_id = inter.bot.shops[uid].menus[0]
+        inter.bot.shops[uid].menus.remove(msg_id)
 
         incoming = await inter.bot.players.find_one({"_id": inter.author.id})
         price = inter.bot.shops[uid].data["items"][item.lower()]
@@ -324,8 +324,8 @@ class ShopCog(commands.Cog):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        msg = await inter.original_message()
-        inter.bot.shops[uid].menus.remove(msg.id)
+        msg_id = inter.bot.shops[uid].menus[0]
+        inter.bot.shops[uid].menus.remove(msg_id)
 
         info = await inter.bot.players.find_one({"_id": inter.author.id})
 
