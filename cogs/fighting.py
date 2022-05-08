@@ -578,8 +578,6 @@ class Fight(commands.Cog):
         if str(inter.author.id) in inter.bot.shops:
             return await inter.send("You have a shop dialogue open.")
 
-        await inter.send(inter.bot.shops)
-
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
 
