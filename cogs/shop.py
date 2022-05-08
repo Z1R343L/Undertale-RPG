@@ -31,6 +31,7 @@ class ShopMenu:
         self.data = data
         self.latest_inter = None
         self.time = int(time.time())
+        self.menus = []
 
     async def menu(self):
         comps = [
@@ -128,7 +129,15 @@ class ShopMenu:
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
 
-        await self.edit(embed=embed, components=rows)
+        msg = await self.edit(embed=embed, components=rows)
+
+        self.menus.append(msg.id)
+        await asyncio.sleep(60)
+
+        if msg.id in self.menus:
+            await msg.edit(content=f"{self.author.mention} You took to long to reply", components=[])
+            return await self.end()
+        return
 
     async def talk(self):
         await self.edit(content="How tf r u here?")
@@ -178,7 +187,15 @@ class ShopMenu:
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
 
-        await self.edit(embed=embed, components=rows)
+        msg = await self.edit(embed=embed, components=rows)
+
+        self.menus.append(msg.id)
+        await asyncio.sleep(60)
+
+        if msg.id in self.menus:
+            await msg.edit(content=f"{self.author.mention} You took to long to reply", components=[])
+            return await self.end()
+        return
 
     async def end(self):
         await self.edit(embed=None, content="See You soon.", components=[])
@@ -262,6 +279,9 @@ class ShopCog(commands.Cog):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
+        msg = inter.original_message()
+        inter.bot.shops[uid].menus.remove(msg.id)
+
         incoming = await inter.bot.players.find_one({"_id": inter.author.id})
         price = inter.bot.shops[uid].data["items"][item.lower()]
 
@@ -303,6 +323,9 @@ class ShopCog(commands.Cog):
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
+
+        msg = inter.original_message()
+        inter.bot.shops[uid].menus.remove(msg.id)
 
         info = await inter.bot.players.find_one({"_id": inter.author.id})
 

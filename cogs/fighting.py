@@ -389,7 +389,15 @@ class battle:
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
 
-        await self.channel.send(embed=embed, components=rows, delete_after=1800)
+        msg = await self.channel.send(embed=embed, components=rows)
+
+        self.menus.append(msg.id)
+        await asyncio.sleep(60)
+
+        if msg.id in self.menus:
+            await msg.edit(content=f"{self.author.mention} You took to long to reply", components=[])
+            return await self.end()
+        return
 
     async def spare(self):
         try:
@@ -461,6 +469,9 @@ class Fight(commands.Cog):
         if inter.author.id != uid:
             await inter.send('This is not yours kiddo!', ephemeral=True)
             return
+
+        msg = inter.original_message()
+        inter.bot.fights[str(uid)].menus.remove(msg.id)
 
         try:
             await inter.response.defer()
