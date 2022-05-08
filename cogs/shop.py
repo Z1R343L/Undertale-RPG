@@ -219,6 +219,9 @@ class ShopCog(commands.Cog):
 
         location = info["location"]
         lista = []
+        if len(inter.bot.shopping[location]) <= 0:
+            return await inter.send("There is no shops out here!")
+
         for i in inter.bot.shopping[location]:
             lista.append(
                 Button(
