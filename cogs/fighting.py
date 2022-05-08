@@ -470,7 +470,7 @@ class Fight(commands.Cog):
             await inter.send('This is not yours kiddo!', ephemeral=True)
             return
 
-        msg = inter.original_message()
+        msg = await inter.original_message()
         inter.bot.fights[str(uid)].menus.remove(msg.id)
 
         try:
@@ -478,13 +478,10 @@ class Fight(commands.Cog):
         except:
             pass
         if item == "back":
-            msg = await inter.original_message()
 
             await inter.edit_original_message(components=[])
             
             return await inter.bot.fights[str(uid)].menu()
-
-        msg = await inter.original_message()
 
         await inter.edit_original_message(components=[])
 

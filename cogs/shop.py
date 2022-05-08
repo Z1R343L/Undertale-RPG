@@ -168,7 +168,7 @@ class ShopMenu:
             inventory.append({f"{k}": f"{v}x"})
         for item in inventory:
             for key in item:
-                price = self.data["items"][key]
+                price = self.bot.items[key]["price"]
                 lista.append(
                     Button(
                         label=f"{key.title()} {item[key]} | {price / 2}",
@@ -279,7 +279,7 @@ class ShopCog(commands.Cog):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        msg = inter.original_message()
+        msg = await inter.original_message()
         inter.bot.shops[uid].menus.remove(msg.id)
 
         incoming = await inter.bot.players.find_one({"_id": inter.author.id})
@@ -324,7 +324,7 @@ class ShopCog(commands.Cog):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        msg = inter.original_message()
+        msg = await inter.original_message()
         inter.bot.shops[uid].menus.remove(msg.id)
 
         info = await inter.bot.players.find_one({"_id": inter.author.id})
