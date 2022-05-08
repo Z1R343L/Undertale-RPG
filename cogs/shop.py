@@ -282,8 +282,11 @@ class ShopCog(commands.Cog):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        msg_id = inter.bot.shops[uid].menus[0]
-        inter.bot.shops[uid].menus.remove(msg_id)
+        try:
+            msg_id = inter.bot.shops[uid].menus[0]
+            inter.bot.shops[uid].menus.remove(msg_id)
+        except:
+            pass
 
         incoming = await inter.bot.players.find_one({"_id": inter.author.id})
         price = inter.bot.shops[uid].data["items"][item.lower()]
