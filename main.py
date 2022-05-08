@@ -35,6 +35,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.players = None
         self.db = None
         self.cluster = None
+        self.shopping = None
         self.BotToken = os.getenv("TOKEN")
         self.TopGGToken = os.getenv("TOPGG_TOKEN")
         self.MongoUrl = os.getenv("MONGO_URL")
@@ -48,6 +49,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.events = None
         self.cmd_list = ["fboss", "bossfight", "boss"]
         self.fights = {}
+        self.shops = {}
 
     async def on_shard_connect(self, shard):
         print(f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN} is connected.{bcolors.ENDC}")

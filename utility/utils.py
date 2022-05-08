@@ -12,6 +12,13 @@ class bcolors:
     BOLD = '\033[1m'
     UNDER = '\033[4m'
 
+
+def occurance(stored, value):
+    try:
+        stored[value] = stored[value] + 1
+    except KeyError:
+        stored[value] = 1
+        return
 async def get_bar(health, max_health):
     bar0 = "<:0_:899376245496758343>"
     bar2 = "<:2_:899376429568000040>"

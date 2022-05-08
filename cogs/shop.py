@@ -1,216 +1,105 @@
-import asyncio
-
 import disnake
-from disnake.ext import commands, tasks, components
-
-from disnake import ButtonStyle
-from disnake.ui import Button, ActionRow
-import utility.loader as loader
-from utility.dataIO import fileIO
-from utility import utils
+import asyncio
 import time
 
-class FightReturn(disnake.ui.View):
-    def __init__(self, bot, author):
-        super().__init__()
+from disnake.ext import commands, components
+from disnake.ui import Button, ActionRow
+from disnake import ButtonStyle
+
+from utility import loader
+from utility.utils import occurance
+
+
+class ShopMenu:
+    def __init__(
+            self,
+            bot,
+            inter,
+            author,
+            msg,
+            channel,
+            data,
+            shop
+    ):
         self.bot = bot
+        self.inter = inter
         self.author = author
-        
-        
-        
-    @disnake.ui.button(label="Return to fight")
-    async def return_to(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
-        if inter.author.id != self.author.id:
-            await inter.send("this is not your's kiddo!", ephemeral=True)
-            return
-        
-        button.disabled = True
-        await inter.response.edit_message(view=self)
-        await self.bot.fights[str(inter.author.id)].menu()
-        
+        self.msg = msg
+        self.shop = shop
+        self.channel = channel
+        self.edit = msg.edit
+        self.data = data
+        self.latest_inter = None
+        self.time = int(time.time())
 
-class Shop(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    async def weapon(self, inter, item):
-        data = await self.bot.players.find_one({"_id": inter.author.id})
-        data["inventory"].remove(item)
-        data["inventory"].append(data["weapon"])
-        data = {
-            "weapon": item,
-            "inventory": data["inventory"]
-        }
-        await self.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-        return await inter.send(f"Successfully equipped {item.title()}")
-
-    async def armor(self, inter, item):
-        data = await self.bot.players.find_one({"_id": inter.author.id})
-        data["inventory"].remove(item)
-        data["inventory"].append(data["armor"])
-
-        data = {
-            "armor": item,
-            "inventory": data["inventory"]
-        }
-        await self.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-        return await inter.send(f"Successfully equipped {item.title()}")
-
-    async def food(self, inter, item):
-        data = await self.bot.players.find_one({"_id": inter.author.id})
-        data["inventory"].remove(item)
-        heal = self.bot.items[item]["HP"]
-        data["health"] += heal
-
-        if data["health"] >= data["max_health"]:
-            data["health"] = data["max_health"]
-            data = {
-                "health": data["max_health"],
-                "inventory": data["inventory"]
-            }
-            await self.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-            await inter.send("Your health maxed out")
-            return
-        health = data["health"]
-        data = {
-            "health": health,
-            "inventory": data["inventory"]
-        }
-        await self.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
-        return await inter.send(
-            f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
-        )
-
-    @commands.command(alaises=["sellshop", "s"])
-    async def sell(self, inter):
-        if str(inter.author.id) in inter.bot.fights:
-            tm = inter.bot.fights[str(inter.author.id)].time
-            curr_time = time.time()
-            delta = int(curr_time) - tm
-            if delta >= 1800:
-                buttn = FightReturn(bot=self.bot, author=inter.author)
-                return await inter.send("You have been in a fight for quite a while right now, Wanna finish this fight?", view=buttn)
-            await inter.send(inter.author.mention + " You're in a fight, You cannot use that!")
-            return
-        author = inter.author
-        await loader.create_player_info(inter, inter.author)
-        info = await self.bot.players.find_one({"_id": author.id})
-        if inter.author.id in inter.bot.fights:
-            return
-        items = [key for key in info["inventory"]]
-        if not items:
-            await inter.send("You don't have anything to sell!")
-            return
-
-        def countoccurrences(stored, value):
-            try:
-                stored[value] = stored[value] + 1
-            except KeyError:
-                stored[value] = 1
-                return
-
-        embed = disnake.Embed(
-            title="Shop",
-            description="Welcome to the shop, selling!",
-            color=disnake.Colour.random(),
-        )
-
-        rows = []
-        lista = []
-        inventory = []
-        store = {}
-        for data in info["inventory"]:
-            countoccurrences(store, data)
-        for k, v in store.items():
-            inventory.append({f"{k}": f"{v}x"})
-        for item in inventory:
-            for key in item:
-                price = self.bot.items[key]["price"]
-                lista.append(
-                    Button(
-                        label=f"{key.title()} {item[key]} | {price / 2}",
-                        custom_id=self.s_selected.build_custom_id(item=key.lower(), uid=inter.author.id),
-                        style=ButtonStyle.grey,
-                    )
+    async def menu(self):
+        comps = [
+            Button(
+                label="Buy",
+                custom_id=ShopCog.shop_listener.build_custom_id(
+                    action="buy",
+                    uid=str(self.author.id)
+                ),
+                style=ButtonStyle.green
+            ),
+            Button(
+                label="Talk",
+                custom_id=ShopCog.shop_listener.build_custom_id(
+                    action="talk",
+                    uid=str(self.author.id)
+                ),
+                disabled=True
+            ),
+            Button(
+                label="Sell",
+                custom_id=ShopCog.shop_listener.build_custom_id(
+                    action="sell",
+                    uid=str(self.author.id)
                 )
+            ),
+            Button(
+                label="End",
+                custom_id=ShopCog.shop_listener.build_custom_id(
+                    action="end",
+                    uid=str(self.author.id)
+                ),
+                style=ButtonStyle.red
+            )
+        ]
+        embed = disnake.Embed(
+            title=f"Welcome to the {self.shop}",
+            description=self.data["s_talk"],
+            color=disnake.Color.random()
+        )
+        embed.set_thumbnail(url=self.data["image"])
 
-        for i in range(0, len(lista), 5):
-            rows.append(ActionRow(*lista[i: i + 5]))
+        await self.edit(embed=embed, components=[comps])
 
-        await inter.send(embed=embed, components=rows)
+    async def buy(self):
+        info = await self.bot.players.find_one({"_id": self.author.id})
+        if len(info["inventory"]) >= 10:
+            await self.latest_inter.send(content="You don't have enough inventory", ephemeral=True)
+            return await self.menu()
 
-    @components.button_listener()
-    async def s_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('This is not your kiddo!', ephemeral=True)
-            return
-
-        info = await self.bot.players.find_one({"_id": inter.author.id})
-
-        returned = self.bot.items[item]["price"] / 2
-
-        info["inventory"].remove(item)
-
-        info["gold"] = info["gold"] + returned
-
-        output = {
-            "gold": info["gold"],
-            "inventory": info["inventory"]
-        }
-        await inter.response.defer()
-
-        await self.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
-
-        await inter.send(f"You sold {item} for {round(returned, 1)} G", ephemeral=True)
-
-        msg = await inter.original_message()
-
-        await inter.edit_original_message(components=[])
-
-    @components.button_listener()
-    async def shutdown(self, inter: disnake.MessageInteraction, uid: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('This is not your kiddo!', ephemeral=True)
-            return
-
-        await inter.response.defer()
-
-        await inter.edit_original_message(components=[])
-
-    @commands.command(aliases=["buy"])
-    async def shop(self, inter):
-        if str(inter.author.id) in inter.bot.fights:
-            tm = inter.bot.fights[str(inter.author.id)].time
-            curr_time = time.time()
-            delta = int(curr_time) - tm
-            if delta >= 1800:
-                buttn = FightReturn(bot=self.bot, author=inter.author)
-                return await inter.send("You have been in a fight for quite a while right now, Wanna finish this fight?", view=buttn)
-            await inter.send(inter.author.mention + " You're in a fight, You cannot use that!")
-            return
-        await loader.create_player_info(inter, inter.author)
-        data = await inter.bot.players.find_one({"_id": inter.author.id})
-        if len(data["inventory"]) >= 10:
-            await inter.send("You're carrying alot of items!")
-            return
-        if inter.author.id in inter.bot.fights:
-            return
         items_list = []
-        gold = data["gold"]
-        for i in self.bot.items:
-            if self.bot.items[i]["location"] == data["location"]:
-                items_list.append(i)
+        gold = info["gold"]
 
+        for i in self.data["items"]:
+            items_list.append(i)
+        s_talk = self.data["s_talk"]
         embed = disnake.Embed(
             title="Shop",
-            description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
+            description=f"{s_talk}\n\nYour gold: **{int(gold)}**",
             color=disnake.Colour.random(),
         )
+
+        embed.set_thumbnail(self.data["image"])
+
         rows = []
         lista = []
         for item in items_list:
-            price = self.bot.items[item]["price"]
-            if price > data["gold"]:
+            price = self.data["items"][item]
+            if price > info["gold"]:
                 lista.append(
                     Button(
                         label=f"{item.title()} | {price} G",
@@ -222,48 +111,171 @@ class Shop(commands.Cog):
                 lista.append(
                     Button(
                         label=f"{item.title()} | {price} G",
-                        custom_id=self.selected.build_custom_id(
+                        custom_id=ShopCog.selected.build_custom_id(
                             item=item.lower(),
-                            uid=inter.author.id
+                            uid=self.author.id
                         ),
                         style=ButtonStyle.grey
                     )
                 )
         lista.append(
             Button(
-                label="End Interaction",
-                custom_id=self.shutdown.build_custom_id(uid=str(inter.author.id)),
+                label="Go Back",
+                custom_id=ShopCog.shutdown.build_custom_id(uid=str(self.author.id)),
                 style=ButtonStyle.red)
         )
 
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
-        await inter.send(embed=embed, components=rows)
+
+        await self.edit(embed=embed, components=rows)
+
+    async def talk(self):
+        await self.edit(content="How tf r u here?")
+
+    async def sell(self):
+        info = await self.bot.players.find_one({"_id": self.author.id})
+        items = [key for key in info["inventory"]]
+        if not items:
+            await self.latest_inter.send("You don't have anything to sell!", ephemeral=True)
+            await asyncio.sleep(3)
+            return await self.menu()
+
+        s_talk = self.data["s_talk"]
+        embed = disnake.Embed(
+            title="Shop",
+            description=f"{s_talk}, Selling dialogue!",
+            color=disnake.Colour.random(),
+        )
+        embed.set_thumbnail(url=self.data["image"])
+
+        rows = []
+        lista = []
+        inventory = []
+        store = {}
+        for data in info["inventory"]:
+            occurance(store, data)
+        for k, v in store.items():
+            inventory.append({f"{k}": f"{v}x"})
+        for item in inventory:
+            for key in item:
+                price = self.data["items"][key]
+                lista.append(
+                    Button(
+                        label=f"{key.title()} {item[key]} | {price / 2}",
+                        custom_id=ShopCog.s_selected.build_custom_id(item=key.lower(), uid=self.author.id),
+                        style=ButtonStyle.grey,
+                    )
+                )
+
+        lista.append(
+            Button(
+                label="Go Back",
+                custom_id=ShopCog.shutdown.build_custom_id(uid=str(self.author.id)),
+                style=ButtonStyle.red)
+        )
+
+        for i in range(0, len(lista), 5):
+            rows.append(ActionRow(*lista[i: i + 5]))
+
+        await self.edit(embed=embed, components=rows)
+
+    async def end(self):
+        await self.edit(embed=None, content="See You soon.", components=[])
+        del self.bot.shops[str(self.author.id)]
+
+
+class ShopCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(aliases=["buy", "sell"])
+    async def shop(self, inter):
+        if str(inter.author.id) in inter.bot.fights:
+            return await inter.send("You are in a fight.")
+
+        if str(inter.author.id) in inter.bot.shops:
+            return await inter.send("You have a shop dialogue open.")
+
+        await loader.create_player_info(inter, inter.author)
+        info = await self.bot.players.find_one({"_id": inter.author.id})
+
+        location = info["location"]
+        lista = []
+        for i in inter.bot.shopping[location]:
+            lista.append(
+                Button(
+                    label=i.title(),
+                    custom_id=ShopCog.shop_selector_listener.build_custom_id(
+                        shop=i,
+                        loc=location,
+                        uid=str(inter.author.id)
+                    )
+                )
+            )
+
+        await inter.send("Select a Shop", components=[lista])
+
+    @components.button_listener()
+    async def shutdown(self, inter: disnake.MessageInteraction, uid: str) -> None:
+        if inter.author.id != int(uid):
+            await inter.send('This is not your kiddo!', ephemeral=True)
+            return
+
+        await inter.response.defer()
+
+        return await inter.bot.shops[uid].menu()
+
+    @components.button_listener()
+    async def shop_listener(self, inter: disnake.MessageInteraction, action: str, uid: str) -> None:
+        if str(inter.author.id) != uid:
+            return await inter.send("This is not yours kiddo!", ephemeral=True)
+
+        # noinspection PyUnresolvedReferences
+        try:
+            await inter.response.defer()
+        except:
+            pass
+        inter.bot.shops[uid].latest_inter = inter
+        await getattr(inter.bot.shops[uid], action)()
+
+    @components.button_listener()
+    async def shop_selector_listener(self, inter: disnake.MessageInteraction, shop: str, loc: str, uid: str) -> None:
+        if str(inter.author.id) != uid:
+            return await inter.send("This is not yours kiddo!", ephemeral=True)
+
+        data = inter.bot.shopping[loc][shop]
+
+        try:
+            await inter.response.defer()
+        except:
+            pass
+
+        msg = await inter.original_message()
+        shop_obj = ShopMenu(inter.bot, inter, inter.author, msg, inter.channel, data, shop)
+        shop_obj.bot.shops[str(inter.author.id)] = shop_obj
+        await shop_obj.menu()
 
     @components.button_listener()
     async def selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
+
         incoming = await inter.bot.players.find_one({"_id": inter.author.id})
-        gold = incoming["gold"]
-        price = self.bot.items[item]["price"]
-        embed = disnake.Embed(
-            title="Shop",
-            description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
-            color=disnake.Colour.random(),
-        )
-        await inter.response.defer()
+        price = inter.bot.shops[uid].data["items"][item.lower()]
+
+        try:
+            await inter.response.defer()
+        except:
+            pass
+
         if incoming["gold"] < price:
-            if "```diff\n- You're gold is not enough\n```" not in embed.description:
-                embed.description += "```diff\n- You're gold is not enough\n```"
-                await inter.edit_original_message(embed=embed)
-            return
+            return await inter.send("Your gold is not enough.", ephemeral=True)
+
         if len(incoming["inventory"]) >= 10:
-            if "```diff\n- You're carrying alot of items!\n```" not in embed.description:
-                embed.description += "```diff\n- You're carrying alot of items!\n```"
-            await inter.edit_original_message(embed=embed)
-            return
+            return await inter.send("You are carrying alot of items.", ephemeral=True)
+
         incoming["gold"] -= price
         gold = incoming["gold"]
         incoming["inventory"].append(item)
@@ -272,203 +284,50 @@ class Shop(commands.Cog):
             "inventory": incoming["inventory"],
             "gold": incoming["gold"]
         }
-        await self.bot.players.update_one(
+        await inter.bot.players.update_one(
             {"_id": inter.author.id}, {"$set": incoming}
         )
+        s_talk = inter.bot.shops[uid].data["s_talk"]
         emb = disnake.Embed(
             title="Shop",
-            description=f"Welcome to the shop!\nYour gold: **{int(gold)}**",
+            description=f"{s_talk}\n\nYour gold: **{int(gold)}**",
             color=disnake.Colour.random(),
         )
-        embed.description += f"```diff\n+ Successfully bought {item}```"
+
+        emb.set_thumbnail(inter.bot.shops[uid].data["image"])
         await inter.edit_original_message(embed=emb)
         await inter.send(f"Successfully bought **{item}**", ephemeral=True)
 
-
-
-    @commands.command(aliases=["consume", "heal", "equip"])
-    async def use(self, inter, *, item: str = None):
-        if str(inter.author.id) in inter.bot.fights:
-            tm = inter.bot.fights[str(inter.author.id)].time
-            curr_time = time.time()
-            delta = int(curr_time) - tm
-            if delta >= 1800:
-                buttn = FightReturn(bot=self.bot, author=inter.author)
-                return await inter.send("You have been in a fight for quite a while right now, Wanna finish this fight?", view=buttn)
-            await inter.send(inter.author.mention + " You're in a fight, You cannot use that!")
-            return
-        def countoccurrences(stored, value):
-            try:
-                stored[value] = stored[value] + 1
-            except KeyError:
-                stored[value] = 1
-                return
-
-        await loader.create_player_info(inter, inter.author)
-        if item is None:
-            data = await inter.bot.players.find_one({"_id": inter.author.id})
-            if len(data["inventory"]) == 0:
-                return await inter.send("You have nothing to use")
-            items_list = []
-            for i in data["inventory"]:
-                items_list.append(i)
-
-            embed = disnake.Embed(
-                title="Inventory",
-                description="Welcome to your Inventory!",
-                color=disnake.Colour.random(),
-            )
-
-            rows = []
-            lista = []
-            inventory = []
-            store = {}
-            for data in data["inventory"]:
-                countoccurrences(store, data)
-
-            for k, v in store.items():
-                inventory.append({f"{k}": f"{v}x"})
-
-            for item in inventory:
-                for key in item:
-                    lista.append(
-                        Button(
-                            label=f"{key.title()} {item[key]}",
-                            custom_id=self.u_selected.build_custom_id(
-                            item=key.lower(),
-                            uid=inter.author.id
-                        ),
-                            style=ButtonStyle.grey,
-                        )
-                    )
-
-            for i in range(0, len(lista), 5):
-                rows.append(ActionRow(*lista[i: i + 5]))
-
-            await inter.send(embed=embed, components=rows)
-            return
-
-        item = item.lower()
-        if item not in self.bot.items:
-            await inter.send("This item does not exist")
-            return
-
-        data = await inter.bot.players.find_one({"_id": inter.author.id})
-
-        if len(data["inventory"]) == 0:
-            await inter.send("Your inventory is empty!")
-            return
-
-        if item not in data["inventory"]:
-            await inter.send("You don't have this item in your inventory!")
-            return
-
-        await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
-
     @components.button_listener()
-    async def u_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
+    async def s_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
         if inter.author.id != int(uid):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        await inter.response.defer()
+        info = await inter.bot.players.find_one({"_id": inter.author.id})
 
-        await inter.edit_original_message(components=[])
-        await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
-
-    @commands.command(aliases=["opencrate", "open_crate", "crate"])
-    async def open(self, inter):
-        await loader.create_player_info(inter, inter.author)
-        data = await inter.bot.players.find_one({"_id": inter.author.id})
-        standard = data["standard crate"]
-        determin = data["determination crate"]
-        soul = data["soul crate"]
-        void = data["void crate"]
-        embed = disnake.Embed(
-            title="Your boxes",
-            description="You can earn boxes by fighting, voting or defeating specific bosses",
-            color=disnake.Colour.blue(),
-        )
-        embed.add_field(
-            name="Your boxes",
-            value=f"""
-Standard crates: {standard}
-Determination crates: {determin}
-soul crates: {soul}
-void crates: {void}
-                              """,
-        )
-        row = ActionRow(
-            Button(
-                style=ButtonStyle.grey,
-                label="Standard Crate",
-                custom_id=self.c_selected.build_custom_id(
-                            item="standard crate",
-                            uid=inter.author.id
-                        ),
-            ),
-            Button(
-                style=ButtonStyle.grey,
-                label="Determination Crate",
-                custom_id=self.c_selected.build_custom_id(
-                            item="determination crate",
-                            uid=inter.author.id
-                        ),
-            ),
-            Button(
-                style=ButtonStyle.grey,
-                label="Soul Crate",
-                custom_id=self.c_selected.build_custom_id(
-                            item="soul crate",
-                            uid=inter.author.id
-                        ),
-            ),
-            Button(
-                style=ButtonStyle.grey,
-                label="Void Crate",
-                custom_id=self.c_selected.build_custom_id(
-                            item="void crate",
-                            uid=inter.author.id
-                        ),
-            ),
-        )
-        await inter.send(embed=embed, components=[row])
-
-    @components.button_listener()
-    async def c_selected(self, inter: disnake.MessageInteraction, item: str, uid: str) -> None:
-        if inter.author.id != int(uid):
-            await inter.send('This is not your kiddo!', ephemeral=True)
+        returned = inter.bot.items[item]["price"] / 2
+        try:
+            info["inventory"].remove(item)
+        except:
             return
 
-        data = await inter.bot.players.find_one({"_id": inter.author.id})
-        await inter.response.defer()
+        info["gold"] = info["gold"] + returned
 
-        if data[item] == 0:
-            return await inter.edit_original_message(
-                content=f"You don't have any {item.title()}",
-                embed=None,
-                components=[],
-            )
-
-        await inter.edit_original_message(
-            content=f"{inter.author.mention} opened a {item.title()}...",
-            embed=None,
-            components=[],
-        )
-        data[item] -= 1
-        earned_gold = inter.bot.crates[item]["gold"] + data["level"]
-        gold = data["gold"] + earned_gold
-        await asyncio.sleep(3)
-        await inter.edit_original_message(
-            content=f"{inter.author.mention} earned {earned_gold}G from a {item.title()}"
-        )
-        info = {
-            "gold": gold,
-            item: data[item]
+        output = {
+            "gold": info["gold"],
+            "inventory": info["inventory"]
         }
-        return await inter.bot.players.update_one(
-            {"_id": inter.author.id}, {"$set": info}
-        )
+        await inter.response.defer()
+
+        await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
+
+        await inter.send(f"You sold {item} for {round(returned, 1)} G", ephemeral=True)
+        if len(info["inventory"]) <= 0:
+            return
+
+        return await inter.bot.shops[uid].sell()
+
 
 def setup(bot):
-    bot.add_cog(Shop(bot))
+    bot.add_cog(ShopCog(bot))

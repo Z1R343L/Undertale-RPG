@@ -22,8 +22,12 @@ class Traveling(commands.Cog):
     @commands.cooldown(1, 6, commands.BucketType.user)
     async def travel(self, inter):
         """Travel to other spots of the world"""
-        if inter.author.id in inter.bot.fights:
+        if str(inter.author.id) in inter.bot.fights:
             return
+
+        if str(inter.author.id) in inter.bot.shops:
+            return await inter.send("You have a shop dialogue open.")
+
         await loader.create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": inter.author.id})
         data = fileIO("data/traveling.json", "load")

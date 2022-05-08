@@ -52,6 +52,9 @@ class Economy(commands.Cog):
 
     @commands.command()
     async def reset(self, inter):
+        if str(inter.author.id) in inter.bot.shops:
+            return await inter.send("You have a shop dialogue open.")
+
         await loader.create_player_info(inter, inter.author)
         old_data = await self.bot.players.find_one({"_id": inter.author.id})
 
@@ -104,6 +107,10 @@ class Economy(commands.Cog):
     async def booster(self, inter):
         """Claim Your daily Reward!"""
         author = inter.author
+
+        if str(inter.author.id) in inter.bot.shops:
+            return await inter.send("You have a shop dialogue open.")
+
         await loader.create_player_info(inter, inter.author)
         if author.id not in inter.bot.boosters["boosters"]:
             await inter.send(
@@ -140,6 +147,9 @@ class Economy(commands.Cog):
         """Claim Your daily Reward!"""
         author = inter.author
         await loader.create_player_info(inter, inter.author)
+
+        if str(inter.author.id) in inter.bot.shops:
+            return await inter.send("You have a shop dialogue open.")
 
         info = await self.bot.players.find_one({"_id": author.id})
         goldget = 500 * info["multi_g"]
@@ -291,6 +301,9 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def supporter(self, inter):
         """Join our support server and claim a bunch of gold"""
+        if str(inter.author.id) in inter.bot.shops:
+            return await inter.send("You have a shop dialogue open.")
+
         await loader.create_player_info(inter, inter.author)
         while True:
             if inter.guild.id != 817437132397871135:
