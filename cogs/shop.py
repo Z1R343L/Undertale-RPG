@@ -7,7 +7,7 @@ from disnake.ui import Button, ActionRow
 from disnake import ButtonStyle
 
 from utility import loader
-from utility.utils import occurance
+from utility.utils import occurance, in_shop, in_battle
 
 
 class ShopMenu:
@@ -198,7 +198,8 @@ class ShopMenu:
         return
 
     async def end(self):
-        await self.edit(embed=None, content="See You soon.", components=[])
+        if str(self.author.id) not in self.bot.shops:
+            return
         del self.bot.shops[str(self.author.id)]
 
 
@@ -207,19 +208,15 @@ class ShopCog(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=["buy", "sell"])
+    @in_shop()
+    @in_battle()
     async def shop(self, inter):
-        if str(inter.author.id) in inter.bot.fights:
-            return await inter.send("You are in a fight.")
-
-        if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
-
         await loader.create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": inter.author.id})
 
         location = info["location"]
         lista = []
-        if len(inter.bot.shopping[location]) <= 0:
+        if location not in inter.bot.shopping:
             return await inter.send("There is no shops out here!")
 
         for i in inter.bot.shopping[location]:
@@ -274,6 +271,7 @@ class ShopCog(commands.Cog):
         msg = await inter.original_message()
         shop_obj = ShopMenu(inter.bot, inter, inter.author, msg, inter.channel, data, shop)
         shop_obj.bot.shops[str(inter.author.id)] = shop_obj
+        print(f"{str(inter.author)} has entered a shop")
         await shop_obj.menu()
 
     @components.button_listener()

@@ -1,5 +1,6 @@
 from disnake.ui import Button, ActionRow
-
+from disnake.ext import commands
+import disnake
 
 class bcolors:
     HEADER = '\033[95m'
@@ -12,6 +13,34 @@ class bcolors:
     BOLD = '\033[1m'
     UNDER = '\033[4m'
 
+
+def in_battle():
+    async def predicate(inter):
+        if str(inter.author.id) in inter.bot.fights:
+            embed = disnake.Embed(
+                title="You have a fight dialogue open",
+                description=f"[Click here]({inter.bot.fights[str(inter.author.id)].msg.jump_url})",
+                color=disnake.Color.random()
+            )
+            await inter.send(embed=embed)
+            return False
+        return True
+
+    return commands.check(predicate)
+
+def in_shop():
+    async def predicate(inter):
+        if str(inter.author.id) in inter.bot.shops:
+            embed = disnake.Embed(
+                title="You have a shop dialogue open",
+                description=f"[Click here]({inter.bot.shops[str(inter.author.id)].msg.jump_url})",
+                color=disnake.Color.random()
+            )
+            await inter.send(embed=embed)
+            return False
+        return True
+
+    return commands.check(predicate)
 
 def occurance(stored, value):
     try:

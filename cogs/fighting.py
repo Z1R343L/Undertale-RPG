@@ -36,6 +36,7 @@ class battle:
         self.author = author
         self.monster = monster
         self.inter = inter
+        self.msg = None
         self.time = int(time.time())
         self.kind = kind  # 0 for monster, 1 for boss, 2 for special.
         self.menus = []
@@ -124,6 +125,7 @@ class battle:
         embed.set_thumbnail(url=image)
 
         msg = await self.inter.send(self.author.mention, embed=embed, components=buttons)
+        self.msg = msg
 
         self.menus.append(msg.id)
         await asyncio.sleep(60)
@@ -505,6 +507,8 @@ class Fight(commands.Cog):
         return await getattr(inter.bot.fights[str(uid)], action)()
 
     @commands.command(aliases=["fboss", "bossfight", "fightboss"])
+    @utils.in_shop()
+    @utils.in_battle()
     async def boss(self, inter):
 
         if str(inter.author.id) in inter.bot.fights:
@@ -512,7 +516,12 @@ class Fight(commands.Cog):
             return
 
         if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
+            embed = disnake.Embed(
+                title="You have a shop dialogue open",
+                description=f"[Click here]({inter.bot.shops[str(inter.author.id)].msg.jump_url})",
+                color=disnake.Color.random()
+            )
+            return await inter.send(embed=embed)
 
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
@@ -569,15 +578,10 @@ class Fight(commands.Cog):
             await fight.end()
 
     @commands.command(aliases=["f", "battle", "monster"])
+    @utils.in_shop()
+    @utils.in_battle()
     async def fight(self, inter):
         """Fight Monsters and gain EXP and Gold"""
-        if str(inter.author.id) in inter.bot.fights:
-            await inter.send(inter.author.mention + " You're already in a fight")
-            return
-
-        if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
-
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
 

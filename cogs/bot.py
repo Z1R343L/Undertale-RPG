@@ -61,7 +61,7 @@ class Bot(commands.Cog):
 
         em.add_field(
             name="links",
-            value="[Support Server](https://discord.gg/FQYVpuNz4Q)\n[Wiki Link](https://undertale-rpg.fandom.com/)\n[top.gg link](https://top.gg/bot/815153881217892372)")
+            value="[Support Server](https://discord.gg/FQYVpuNz4Q)\n[top.gg link](https://top.gg/bot/815153881217892372)")
         em.add_field(
             name="Guilds Count",
             value=f"`{len(self.bot.guilds)}` Guilds",

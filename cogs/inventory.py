@@ -6,7 +6,7 @@ from disnake.ext import commands, components
 from disnake import ButtonStyle
 from disnake.ui import Button, ActionRow
 import utility.loader as loader
-from utility.utils import occurance
+from utility.utils import occurance, in_shop, in_battle
 
 
 class Shop(commands.Cog):
@@ -62,12 +62,9 @@ class Shop(commands.Cog):
         )
 
     @commands.command(aliases=["consume", "heal", "equip"])
+    @in_shop()
+    @in_battle()
     async def use(self, inter, *, item: str = None):
-        if str(inter.author.id) in inter.bot.fights:
-            return
-
-        if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
 
         await loader.create_player_info(inter, inter.author)
         if item is None:
@@ -142,7 +139,10 @@ class Shop(commands.Cog):
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
     @commands.command(aliases=["opencrate", "open_crate", "crate"])
+    @in_shop()
+    @in_battle()
     async def open(self, inter):
+
         await loader.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
         standard = data["standard crate"]

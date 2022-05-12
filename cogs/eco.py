@@ -6,7 +6,7 @@ import disnake
 from disnake.ext import commands
 
 import utility.loader as loader
-from utility.utils import get_bar
+from utility.utils import get_bar, in_battle, in_shop
 
 from datetime import datetime
 
@@ -27,7 +27,6 @@ class Choice(disnake.ui.View):
             return await inter.send("This is not yours kiddo!", ephemeral=True)
         self.choice = True
         await inter.response.defer()
-        msg = await inter.original_message()
 
         await inter.edit_original_message(components=[])
         self.stop()
@@ -39,7 +38,6 @@ class Choice(disnake.ui.View):
         self.choice = False
 
         await inter.response.defer()
-        msg = await inter.original_message()
 
         await inter.edit_original_message(components=[])
         self.stop()
@@ -51,10 +49,9 @@ class Economy(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @in_shop()
+    @in_battle()
     async def reset(self, inter):
-        if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
-
         await loader.create_player_info(inter, inter.author)
         old_data = await self.bot.players.find_one({"_id": inter.author.id})
 
@@ -103,13 +100,12 @@ class Economy(commands.Cog):
             await inter.send("You should come back again!")
 
     @commands.command()
+    @in_shop()
+    @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def booster(self, inter):
         """Claim Your daily Reward!"""
         author = inter.author
-
-        if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
 
         await loader.create_player_info(inter, inter.author)
         if author.id not in inter.bot.boosters["boosters"]:
@@ -142,14 +138,13 @@ class Economy(commands.Cog):
         await inter.send(embed=em)
 
     @commands.command()
+    @in_shop()
+    @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def daily(self, inter):
         """Claim Your daily Reward!"""
         author = inter.author
         await loader.create_player_info(inter, inter.author)
-
-        if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
 
         info = await self.bot.players.find_one({"_id": author.id})
         goldget = 500 * info["multi_g"]
@@ -298,12 +293,11 @@ class Economy(commands.Cog):
         await inter.send(embed=em)
 
     @commands.command(aliases=["sp"])
+    @in_shop()
+    @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def supporter(self, inter):
         """Join our support server and claim a bunch of gold"""
-        if str(inter.author.id) in inter.bot.shops:
-            return await inter.send("You have a shop dialogue open.")
-
         await loader.create_player_info(inter, inter.author)
         while True:
             if inter.guild.id != 817437132397871135:
