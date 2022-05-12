@@ -136,7 +136,7 @@ class ShopMenu:
 
         if msg.id in self.menus:
             await msg.edit(content=f"{self.author.mention} You took to long to reply", components=[])
-            return await self.end()
+            return await self.timeout()
         return
 
     async def talk(self):
@@ -193,14 +193,21 @@ class ShopMenu:
         await asyncio.sleep(60)
 
         if msg.id in self.menus:
-            await msg.edit(content=f"{self.author.mention} You took to long to reply", components=[])
-            return await self.end()
+            return await self.timeout()
         return
 
     async def end(self):
+        await self.edit(content="Shop is closed", components=[])
         if str(self.author.id) not in self.bot.shops:
             return
         del self.bot.shops[str(self.author.id)]
+
+    async def timeout(self):
+        await self.edit(content=f"{self.author.mention} You took to long to reply", components=[])
+        if str(self.author.id) not in self.bot.shops:
+            return
+        del self.bot.shops[str(self.author.id)]
+        return
 
 
 class ShopCog(commands.Cog):
