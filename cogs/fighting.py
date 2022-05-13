@@ -20,7 +20,7 @@ async def count(keys, value):
         return
 
 
-class battle:
+class Battle:
     def __init__(
             self,
             author: disnake.Member,
@@ -568,7 +568,7 @@ class Fight(commands.Cog):
 
         await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a boss fight")
-        fight = battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
+        fight = Battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
         try:
             await fight.menu()
@@ -577,7 +577,7 @@ class Fight(commands.Cog):
             await inter.send(inter.author.mention + "You have encountered an error, the developers has been notified.")
             await fight.end()
 
-    @commands.command(aliases=["f", "battle", "monster"])
+    @commands.command(aliases=["f", "Battle", "monster"])
     @utils.in_shop()
     @utils.in_battle()
     async def fight(self, inter):
@@ -616,7 +616,7 @@ class Fight(commands.Cog):
 
         await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a fight")
-        fight = battle(inter.author, inter.bot, monster, inter, 0, inter.channel)
+        fight = Battle(inter.author, inter.bot, monster, inter, 0, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
         try:
             await fight.menu()

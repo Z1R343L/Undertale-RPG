@@ -50,6 +50,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.cmd_list = ["fboss", "bossfight", "boss"]
         self.fights = {}
         self.shops = {}
+        self.duels = {}
 
     async def on_shard_connect(self, shard):
         print(f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN} is connected.{bcolors.ENDC}")

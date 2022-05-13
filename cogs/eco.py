@@ -14,15 +14,15 @@ importlib.reload(loader)
 
 starttime = time.time()
 
+
 class Choice(disnake.ui.View):
     def __init__(self, author: disnake.Member):
         super().__init__()
         self.author = author
         self.choice = None
 
-
     @disnake.ui.button(label="Yes", style=disnake.ButtonStyle.green)
-    async def Yes(self, button, inter):
+    async def yes(self, button, inter):
         if inter.author != self.author:
             return await inter.send("This is not yours kiddo!", ephemeral=True)
         self.choice = True
@@ -32,7 +32,7 @@ class Choice(disnake.ui.View):
         self.stop()
 
     @disnake.ui.button(label="No", style=disnake.ButtonStyle.red)
-    async def No(self, button, inter):
+    async def no(self, button, inter):
         if inter.author != self.author:
             return await inter.send("This is not yours kiddo!", ephemeral=True)
         self.choice = False
@@ -41,6 +41,7 @@ class Choice(disnake.ui.View):
 
         await inter.edit_original_message(components=[])
         self.stop()
+
 
 class Economy(commands.Cog):
     """Economy module and balance related"""
@@ -66,7 +67,8 @@ class Economy(commands.Cog):
 
         embed = disnake.Embed(
             title="Reseting your world.",
-            description=("Are you sure you want to proceed\nYour progress will vanish, but you will gain multipliers for gold and xp.\n\n"
+            description=("Are you sure you want to proceed\nYour progress will vanish, but you will gain multipliers"
+                         "for gold and xp.\n\n"
                          f"Your gold multiplier will be **{gold}x**"
                          f"\nYour XP multiplier will be **{xp}x**"
                          )
@@ -82,7 +84,6 @@ class Economy(commands.Cog):
         view = Choice(inter.author)
         await inter.send(embed=embed, view=view)
         await view.wait()
-
 
         if view.choice:
             await self.bot.players.delete_one({"_id": inter.author.id})
@@ -131,7 +132,9 @@ class Economy(commands.Cog):
         else:
             seconds = 86400 - delta
             em = disnake.Embed(
-                description=f"**You can't claim your booster reward yet!\n\nYou can claim your booster reward <t:{int(time.time()) + int(seconds)}:R>**",
+                description=(
+                    f"**You can't claim your booster reward yet!\n\nYou can claim your booster reward"
+                    f" <t:{int(time.time()) + int(seconds)}:R>**"),
                 color=disnake.Color.red(),
             )
 
@@ -162,7 +165,10 @@ class Economy(commands.Cog):
         else:
             seconds = 86400 - delta
             em = disnake.Embed(
-                description=f"**You can't claim your daily reward yet!\n\nYou can claim your daily reward <t:{int(time.time()) + int(seconds)}:R>**",
+                description=(
+                    f"**You can't claim your daily reward yet!\n\nYou can claim your daily reward"
+                    f"<t:{int(time.time()) + int(seconds)}:R>**"
+                ),
                 color=disnake.Color.red(),
             )
 
@@ -181,6 +187,12 @@ class Economy(commands.Cog):
             color=disnake.Colour.random(),
         )
         await inter.send(embed=embed)
+
+    # for our guild only for now.
+    @commands.user_command(name="Check Stats", guild_ids=[817437132397871135])
+    async def check_stats(self, inter, member):
+        await inter.response.defer()
+        await Economy.stats(self, inter, member)
 
     @commands.command(aliases=["level", "progress", "lvl", "stat", "profile"])
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -326,7 +338,10 @@ class Economy(commands.Cog):
                 else:
                     seconds = 86400 - delta
                     em = disnake.Embed(
-                        description=f"**You can't claim your supporter reward yet!\n\n You can use this command again <t:{int(time.time()) + int(seconds)}:R>**",
+                        description=(
+                            f"**You can't claim your supporter reward yet!\n\n You can use this command again"
+                            f" <t:{int(time.time()) + int(seconds)}:R>**"
+                                     ),
                         color=disnake.Color.red(),
                     )
                 await inter.send(embed=em)
