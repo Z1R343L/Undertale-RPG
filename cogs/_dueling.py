@@ -1,5 +1,4 @@
 import asyncio
-import importlib
 import random
 
 import disnake
@@ -7,207 +6,150 @@ from disnake.ext import commands, components
 from disnake.ui import Button, ActionRow
 from disnake.enums import ButtonStyle
 
-from utility.utils import create_player_info
+from utility.utils import create_player_info, occurance
 
 
-class Duel(commands.Cog):
+class DuelCog(commands.Cog):
     def __init_(self, bot):
         self.bot = bot
 
+    @components.button_listener()
+    async def duel_action(self, inter: disnake.MessageInteraction, action: str, uid: int, pl_id: int) -> None:
+        if inter.author.id != uid:
+            await inter.send('This is not yours kiddo!', ephemeral=True)
+            return
+
+        try:
+            await inter.response.defer()
+        except:
+            pass
+
+        await inter.edit_original_message(components=[])
+
+        return await getattr(inter.bot.duels[str(uid)], action)(pl_id)
+
+    @components.button_listener()
+    async def duel_accepter(self, inter: disnake.MessageInteraction, choice: str, uid: str):
+        if uid != str(inter.author.id):
+            return await inter.send("This is not your's kiddo!", ephemeral=True)
+
+        try:
+            await inter.response.defer()
+        except:
+            pass
+
+        if choice == "yes":
+            await inter.edit_original_message(components=[])
+            await inter.bot.duels[uid].menu(self, inter, 2)
+        else:
+            await inter.edit_original_message(content="You fleed", components=[])
+
     @commands.command(aliases=[])
     @commands.cooldown(1, 20, commands.BucketType.user)
-    async def duel(self, ctx, p2: disnake.Member = None):
-        p1 = ctx.author
+    async def duel(self, inter, p2: disnake.Member = None):
+        p1 = inter.author
         if p2 is None:
-            await ctx.send("You should mention a user to duel with!")
+            await inter.send("You should mention a user to duel with!")
             return
-
-        if p1 == p2:
-            return await ctx.send("Nice try ;)")
 
         if p2.bot:
-            return await ctx.send("Nice try ;)")
+            return await inter.send("Nice try ;)")
 
-        await loader.create_player_info(ctx, p1)
-        await loader.create_player_info(ctx, p2)
+        await create_player_info(inter, p1)
+        await create_player_info(inter, p2)
 
-        p1_dat = await ctx.bot.players.find_one({"_id": p1.id})
-        p2_dat = await ctx.bot.players.find_one({"_id": p2.id})
+        p1_dat = await inter.bot.players.find_one({"_id": p1.id})
+        p2_dat = await inter.bot.players.find_one({"_id": p2.id})
 
-        if p1_dat["fighting"] or p2_dat["fighting"]:
-            await ctx.send(
-                "One of you is already on a fight, please continue it and execute this command again!"
-            )
-            return
         p1_health = p1_dat["health"]
         p2_health = p2_dat["health"]
         embed = disnake.Embed(
-            title=f"{ctx.author.name} Requests a fight!",
+            title=f"{inter.author.name} Requests a fight!",
             description=f"Your HP is {p2_health}",
             color=disnake.Color.blue(),
         )
         embed.set_author(name=f"Fight! {p1.name}'s HP is {p1_health}")
-        embed.set_thumbnail(url=p1.avatar_url)
+        embed.set_thumbnail(url=p1.avatar.url)
 
         row = ActionRow(
-            Button(style=ButtonStyle.green, label="Yes", custom_id="yes"),
-            Button(style=ButtonStyle.red, label="No", custom_id="no"),
+            Button(style=ButtonStyle.green, label="Yes", custom_id=self.duel_accepter.build_custom_id(choice="yes", uid=p2.id)),
+            Button(style=ButtonStyle.red, label="No", custom_id=self.duel_accepter.build_custom_id(choice="no", uid=p2.id)),
         )
 
-        msg = await ctx.send(p2.mention, embed=embed, components=[row])
+        duel_obj = Duel(inter.bot, p1, p2, inter)
+        inter.bot.duels[str(p2.id)] = duel_obj
 
-        on_click = msg.create_click_listener(timeout=120)
-
-        @commands.Cog.listener()
-        async def on_button_click(inter):
-            # Reply with a hidden message
-            await inter.reply("This is not yours kiddo!", ephemeral=True)
-
-        @disnake.on_button_click()
-        async def on_test_button(reset_timeout=False):
-            embed.description += "\n\n**You Fled**"
-            await msg.edit(embed=embed, components=[])
-            on_click.kill()
-
-        @on_click.matching_id("yes")
-        async def on_test_button(inter, reset_timeout=False):
-            await msg.edit(components=[])
-            on_click.kill()
-            p1_dat["fighting"] = False
-            p2_dat["fighting"] = False
-            await ctx.bot.players.update_one({"_id": p1.id}, {"$set": p1_dat})
-            await ctx.bot.players.update_one({"_id": p2.id}, {"$set": p2_dat})
-            await Menu.menu(self, ctx, p1, p2)
+        return await inter.send(p2.mention, embed=embed, components=[row])
 
 
 def setup(bot):
-    bot.add_cog(Duel(bot))
+    bot.add_cog(DuelCog(bot))
 
+class Duel:
+    def __init__(self, bot, p1, p2, inter):
+        self.duelers = [p1, p2]
+        self.bot = bot
+        self.inter = inter
 
-class Core:
-    async def get_xp_bar(xp, max_xp):
-        bar0 = "<:0_:877147611096842271>"
-        bar2 = "<:2_:877147680638382080>"
-        bar4 = "<:4_:877147771159842836>"
-        bar5 = "<:5_:877147798619959296>"
-        bar = None
-        mix = xp / max_xp
-        per = mix * 100
-        if per == 0:
-            bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
-        if 10 >= per > 0:
-            bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
-        if 20 >= per > 10:
-            bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
-        if 30 >= per > 20:
-            bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
-        if 40 >= per > 30:
-            bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
-        if 50 >= per > 40:
-            bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
-        if 60 >= per > 50:
-            bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
-        if 70 >= per > 60:
-            bar = f"{bar5}{bar5}{bar5}<:3_:877147741392871465>{bar0}"
-        if 80 >= per > 70:
-            bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
-        if 90 >= per > 80:
-            bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
-        if 100 >= per > 90:
-            bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
-        return bar
+    async def menu(self, player: int):
+        opponent = None
 
-    async def get_bar(health, max_health):
-        bar0 = "<:0_:876786251892654090>"
-        bar2 = "<:2_:876786310931681361>"
-        bar4 = "<:4_:876786361934413854>"
-        bar5 = "<:5_:876786380888494120>"
-        bar = None
-        mix = health / max_health
-        per = mix * 100
-        if per == 0:
-            bar = f"{bar0}{bar0}{bar0}{bar0}{bar0}"
-        if 10 >= per > 0:
-            bar = f"{bar2}{bar0}{bar0}{bar0}{bar0}"
-        if 20 >= per > 10:
-            bar = f"{bar5}{bar0}{bar0}{bar0}{bar0}"
-        if 30 >= per > 20:
-            bar = f"{bar5}{bar2}{bar0}{bar0}{bar0}"
-        if 40 >= per > 30:
-            bar = f"{bar5}{bar4}{bar0}{bar0}{bar0}"
-        if 50 >= per > 40:
-            bar = f"{bar5}{bar5}{bar2}{bar0}{bar0}"
-        if 60 >= per > 50:
-            bar = f"{bar5}{bar5}{bar4}{bar0}{bar0}"
-        if 70 >= per > 60:
-            bar = f"{bar5}{bar5}{bar5}<:3_:876786332817575946>{bar0}"
-        if 80 >= per > 70:
-            bar = f"{bar5}{bar5}{bar5}{bar5}{bar2}"
-        if 90 >= per > 80:
-            bar = f"{bar5}{bar5}{bar5}{bar5}{bar4}"
-        if 100 >= per > 90:
-            bar = f"{bar5}{bar5}{bar5}{bar5}{bar5}"
-        return bar
+        if player == 1:
+            opponent = 2
+        else:
+            opponent = 1
 
-    async def count(store, value):
-        try:
-            store[value] = store[value] + 1
-        except KeyError:
-            store[value] = 1
-            return
-
-
-class Menu:
-    async def menu(self, ctx, att, rec):
-        row = ActionRow(
-            Button(style=ButtonStyle.red, label="Fight", custom_id="fight"),
-            Button(style=ButtonStyle.gray, label="Items", custom_id="items"),
-            Button(style=ButtonStyle.green, label="mercy", custom_id="spare"),
-        )
+        buttons = [
+            disnake.ui.Button(
+                style=disnake.ButtonStyle.red,
+                label='Fight',
+                custom_id=DuelCog.duel_action.build_custom_id(action="attack", uid=self.author.id, pl_id=player)
+            ),
+            disnake.ui.Button(
+                style=disnake.ButtonStyle.gray,
+                label='Items',
+                custom_id=DuelCog.duel_action.build_custom_id(action="use", uid=self.author.id)
+            ),
+            disnake.ui.Button(
+                style=disnake.ButtonStyle.grey,
+                label='Act',
+                disabled=True
+            ),
+            disnake.ui.Button(
+                style=disnake.ButtonStyle.green,
+                label='Mercy',
+                custom_id=DuelCog.duel_action.build_custom_id(action="spare", uid=self.author.id)
+            ),
+        ]
 
         embed = disnake.Embed(title="Choose an Option:", color=disnake.Colour.red())
-        msg = await ctx.send(att.mention, embed=embed, components=[row])
-        on_click = msg.create_click_listener(timeout=120)
-
-        @on_click.not_from_user(att, cancel_others=True, reset_timeout=False)
-        async def on_wrong_user(inter):
-            # Reply with a hidden message
-            await inter.reply("This is not yours kiddo!", ephemeral=True)
+        msg = await self.inter.send(self[player].mention, embed=embed, components=[row])
 
         @on_click.matching_id("fight")
-        async def on_test_button(reset_timeout=False):
+        async def on_test_button():
             await msg.edit(components=[])
-            on_click.kill()
-            await Attack.attack(self, ctx, att, rec)
+            await self.attack(player, opponent)
 
         @on_click.matching_id("items")
-        async def on_test_button(reset_timeout=False):
+        async def on_test_button():
             await msg.edit(components=[])
             on_click.kill()
-            await Items.use(self, ctx, att, rec)
+            await self.use(player, opponent)
 
         @on_click.matching_id("spare")
-        async def on_test_button(reset_timeout=False):
+        async def on_test_button():
             await msg.edit(components=[])
             on_click.kill()
-            await Mercy.spare(self, ctx, att, rec)
-
-        @on_click.timeout
-        async def on_timeout():
-            p1_dat = await ctx.bot.players.find_one({"_id": att.id})
-            p2_dat = await ctx.bot.players.find_one({"_id": rec.id})
-            p1_dat["fighting"] = False
-            p2_dat["fighting"] = False
-            await ctx.bot.players.update_one({"_id": att.id}, {"$set": p1_dat})
-            await ctx.bot.players.update_one({"_id": rec.id}, {"$set": p2_dat})
+            await self.spare(player, opponent)
 
 
-class Attack:
-    async def attack(self, ctx, p1, p2):
-        p1_dat = await ctx.bot.players.find_one({"_id": p1.id})
-        p2_dat = await ctx.bot.players.find_one({"_id": p2.id})
+    async def attack(self, player, opponent):
+        p1 = self.duelers[player]
+        p2 = self.duelers[opponent]
+        p1_dat = await self.inter.bot.players.find_one({"_id": p1.id})
+        p2_dat = await self.inter.bot.players.find_one({"_id": p2.id})
 
-        weapon_dat = ctx.bot.items
+        weapon_dat = self.inter.bot.items
 
         p1_weapon = p1_dat["weapon"]
 
@@ -219,14 +161,13 @@ class Attack:
         p2_hp = p2_dat["health"]
 
         dodge_chance = random.randint(1, 10)
-
         atem = disnake.Embed(title="You Attack")
 
         if dodge_chance in [5, 9]:
             atem.description = f"**{p2}** Dodged the atack!"
-            await ctx.send(p1.mention, embed=atem)
+            await self.inter.send(p1.mention, embed=atem)
             await asyncio.sleep(3)
-            await Menu.menu(self, ctx, p2, p1)
+            await self.menu(p2, p1)
             return
         else:
             # player attack
@@ -237,7 +178,7 @@ class Attack:
             atem.set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
             )
-            await ctx.send(p1.mention, embed=atem)
+            await self.inter.send(p1.mention, embed=atem)
             if enemy_hp_after <= 0:
                 await asyncio.sleep(1)
                 embed = disnake.Embed(title="You Won!", color=disnake.Colour.gold())
@@ -245,78 +186,70 @@ class Attack:
                     url="https://cdn.discordapp.com/attachments/850983850665836544/878997428840329246/image0.png"
                 )
 
-                await ctx.send(embed=embed)
+                await self.inter.send(embed=embed)
                 p1_dat["fighting"] = False
                 p2_dat["fighting"] = False
-                await ctx.bot.players.update_one({"_id": p1.id}, {"$set": p1_dat})
-                await ctx.bot.players.update_one({"_id": p2.id}, {"$set": p2_dat})
+                await self.inter.bot.players.update_one({"_id": p1.id}, {"$set": p1_dat})
+                await self.inter.bot.players.update_one({"_id": p2.id}, {"$set": p2_dat})
                 print(f"{p1} and {p2} has ended the fight")
                 return
 
             else:
                 p2_dat["health"] = enemy_hp_after
-                await ctx.bot.players.update_one({"_id": p2.id}, {"$set": p2_dat})
+                await self.inter.bot.players.update_one({"_id": p2.id}, {"$set": p2_dat})
                 await asyncio.sleep(2)
-                await Menu.menu(self, ctx, p2, p1)
+                await self.menu(p2, p1)
 
-
-class Items:
-    async def weapon(self, ctx, p1, p2, item):
-        data = await ctx.bot.players.find_one({"_id": p1.id})
+    async def weapon(self, inter, p1):
+        data = await inter.bot.players.find_one({"_id": p1.id})
         data["inventory"].remove(item)
         data["inventory"].append(data["weapon"])
         data["weapon"] = item
-        await ctx.bot.players.update_one({"_id": p1.id}, {"$set": data})
-        await ctx.send(f"Successfully equipped {item.title()}")
+        await inter.bot.players.update_one({"_id": p1.id}, {"$set": data})
+        await inter.send(f"Successfully equipped {item.title()}")
         await asyncio.sleep(2)
-        return await Menu.menu(self, ctx, p2, p1)  # replace
+        return await self.menu(inter, p2, p1)  # replace
 
-    async def armor(self, ctx, p1, p2, item):
-        data = await ctx.bot.players.find_one({"_id": p1.id})
+    async def armor(self, inter, p1, p2, item):
+        data = await inter.bot.players.find_one({"_id": p1.id})
         print(str(item))
         data["inventory"].remove(item)
         data["inventory"].append(data["armor"])
 
         data["armor"] = item
-        await ctx.bot.players.update_one({"_id": p1.id}, {"$set": data})
-        await ctx.send(f"Successfully equipped {item.title()}")
+        await inter.bot.players.update_one({"_id": p1.id}, {"$set": data})
+        await inter.send(f"Successfully equipped {item.title()}")
         await asyncio.sleep(2)
-        return await Attack.attack(self, ctx, p2, p1)
+        return await self.attack(inter, p2, p1)
 
-    async def food(self, ctx, p1, p2, item):
-        data = await ctx.bot.players.find_one({"_id": p1.id})
+    async def food(self, inter, p1, p2, item):
+        data = await inter.bot.players.find_one({"_id": p1.id})
         data["inventory"].remove(item)
-        heal = ctx.bot.items[item]["HP"]
+        heal = inter.bot.items[item]["HP"]
         data["health"] += heal
 
         if data["health"] >= data["max_health"]:
             data["health"] = data["max_health"]
-            await ctx.bot.players.update_one({"_id": p1.id}, {"$set": data})
-            await ctx.send("Your health maxed out")
+            await inter.bot.players.update_one({"_id": p1.id}, {"$set": data})
+            await inter.send("Your health maxed out")
             await asyncio.sleep(2)
-            return await Menu.menu(self, ctx, p2, p1)  # replace
+            return await self.menu(inter, p2, p1)  # replace
         health = data["health"]
-        await ctx.bot.players.update_one({"_id": p1.id}, {"$set": data})
-        await ctx.send(
+        await inter.bot.players.update_one({"_id": p1.id}, {"$set": data})
+        await inter.send(
             f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
         )
         await asyncio.sleep(2)
-        return await Menu.menu(self, ctx, p2, p1)  # replace
+        return await self.menu(inter, p2, p1)  # replace
 
-    async def use(self, ctx, p1, p2):
-        def countoccurrences(stored, value):
-            try:
-                stored[value] = stored[value] + 1
-            except KeyError:
-                stored[value] = 1
-                return
+    async def use(self, inter, p1, p2):
 
-        await utils.create_player_info(ctx, p1)
-        data = await ctx.bot.players.find_one({"_id": p1.id})
+        await create_player_info(inter, p1)
+        data = await inter.bot.players.find_one({"_id": p1.id})
         if len(data["inventory"]) == 0:
-            await ctx.send("You have nothing to use")
+            await inter.send("You have nothing to use")
             await asyncio.sleep(2)
-            return await Menu.menu(self, ctx, p1, p2)  # replace
+            return await self.menu(inter, p1, p2)  # replace
 
         items_list = []
         for i in data["inventory"]:
@@ -333,7 +266,7 @@ class Items:
         inventory = []
         store = {}
         for data in data["inventory"]:
-            countoccurrences(store, data)
+            occurance(store, data)
         for k, v in store.items():
             inventory.append({f"{k}": f"{v}x"})
         for item in inventory:
@@ -349,35 +282,31 @@ class Items:
         for i in range(0, len(lista), 5):
             rows.append(ActionRow(*lista[i: i + 5]))
 
-        msg = await ctx.send(embed=embed, components=rows)
+        msg = await inter.send(embed=embed, components=rows)
 
         on_click = msg.create_click_listener(timeout=120)
 
-        @on_click.not_from_user(ctx.author, cancel_others=True, reset_timeout=False)
+        @on_click.not_from_user(inter.author, cancel_others=True, reset_timeout=False)
         async def on_wrong_user(inter):
             await inter.reply("This is not yours kiddo!", ephemeral=True)
 
-        @on_click.from_user(ctx.author)
+        @on_click.from_user(inter.author)
         async def selected(inter):
             on_click.kill()
             selected_item = inter.component.id
             await msg.edit(components=[])
             try:
-                await getattr(Items, ctx.bot.items[selected_item]["func"])(self, ctx, p1, p2, selected_item)
+                await getattr(self, inter.bot.items[selected_item]["func"])(inter, p1, p2, selected_item)
             except KeyError:
-                await ctx.send("Nothing happened")
+                await inter.send("Nothing happened")
                 await asyncio.sleep(2)
-                return await Menu.menu(self, ctx, p2, p1)  # replace
+                return await self.menu(p2, p1)  # replace
 
-
-class Mercy:
-
-    @classmethod
-    async def spare(cls, ctx, p1, p2):
-        p1_dat = await ctx.bot.players.find_one({"_id": p1.id})
-        p2_dat = await ctx.bot.players.find_one({"_id": p2.id})
+    async def spare(self, inter, p1, p2):
+        p1_dat = await inter.bot.players.find_one({"_id": p1.id})
+        p2_dat = await inter.bot.players.find_one({"_id": p2.id})
         p1_dat["fighting"] = False
         p2_dat["fighting"] = False
-        await ctx.bot.players.update_one({"_id": p1.id}, {"$set": p1_dat})
-        await ctx.bot.players.update_one({"_id": p2.id}, {"$set": p2_dat})
-        await ctx.send(f"{p2.mention}\n\n{p1} has spared you!, battle is done")
+        await inter.bot.players.update_one({"_id": p1.id}, {"$set": p1_dat})
+        await inter.bot.players.update_one({"_id": p2.id}, {"$set": p2_dat})
+        await inter.send(f"{p2.mention}\n\n{p1} has spared you!, battle is done")

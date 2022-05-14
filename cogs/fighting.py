@@ -102,6 +102,11 @@ class Battle:
                 custom_id=Fight.action.build_custom_id(action="use", uid=self.author.id)
             ),
             disnake.ui.Button(
+                style=disnake.ButtonStyle.grey,
+                label='Act',
+                disabled=True
+            ),
+            disnake.ui.Button(
                 style=disnake.ButtonStyle.green,
                 label='Mercy',
                 custom_id=Fight.action.build_custom_id(action="spare", uid=self.author.id)

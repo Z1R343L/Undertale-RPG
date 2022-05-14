@@ -81,7 +81,9 @@ bot = UndertaleBot(
     command_prefix=os.getenv("PREFIX"),
     owner_ids=[536538183555481601, 513351917481623572]
 )
+
 bot.db_load()
 bot.load_all_cogs()
 bot.load_extension("jishaku")
+
 bot.run(bot.BotToken)
