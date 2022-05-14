@@ -5,7 +5,7 @@ from disnake.ext import commands
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from utility.utils import bcolors
+from utility.utils import ConsoleColors
 
 load_dotenv()
 
@@ -54,15 +54,15 @@ class UndertaleBot(commands.AutoShardedBot):
 
     async def on_shard_connect(self, shard):
         print(
-            f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN}"
-            f"is connected.{bcolors.ENDC}"
+            f"{ConsoleColors.GREEN} shard {ConsoleColors.BOLD}{ConsoleColors.CYAN}{shard}{ConsoleColors.ENDC}{ConsoleColors.GREEN}"
+            f"is connected.{ConsoleColors.ENDC}"
         )
 
     def load_all_cogs(self):
         for filename in os.listdir("./cogs"):
             if filename.endswith(".py") and not filename.startswith("_"):
                 self.load_extension(f"cogs.{filename[:-3]}")
-                print(f"🔁 {bcolors.GREEN}{bcolors.BOLD}cogs.{filename[:-3]} is loaded and ready.{bcolors.ENDC}")
+                print(f"🔁 {ConsoleColors.GREEN}{ConsoleColors.BOLD}cogs.{filename[:-3]} is loaded and ready.{ConsoleColors.ENDC}")
         self.ENABLED = True
         return
 

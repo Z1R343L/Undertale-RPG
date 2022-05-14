@@ -2,7 +2,7 @@ import time
 
 import topgg
 from disnake.ext import commands
-from utility.utils import bcolors
+from utility.utils import ConsoleColors
 
 
 class TopGG(commands.Cog):
@@ -18,13 +18,13 @@ class TopGG(commands.Cog):
         voter = await self.bot.fetch_user(vote_data["user"])
         info = await self.bot.players.find_one({"_id": voter.id})
         if info is None:
-            print(f"{bcolors.WARNING} This user is not registered.{bcolors.ENDC}")
+            print(f"{ConsoleColors.WARNING} This user is not registered.{ConsoleColors.ENDC}")
             return
         info["gold"] = info["gold"] + 500
         info["standard crate"] += 1
         info["last_voted"] = time.time()
         await self.bot.players.update_one({"_id": voter.id}, {"$set": info})
-        print(f"{bcolors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{bcolors.ENDC}")
+        print(f"{ConsoleColors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{ConsoleColors.ENDC}")
 
     @commands.Cog.listener()
     async def on_dbl_test(self, data):
@@ -34,7 +34,7 @@ class TopGG(commands.Cog):
         info["gold"] = info["gold"] + 500
         info["standard crate"] += 1
         await self.bot.players.update_one({"_id": voter.id}, {"$set": info})
-        print(f"{bcolors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{bcolors.ENDC}")
+        print(f"{ConsoleColors.GREEN}Received a vote from {str(voter)}, They got their rewards successfully{ConsoleColors.ENDC}")
 
 def setup(bot):
     bot.add_cog(TopGG(bot))

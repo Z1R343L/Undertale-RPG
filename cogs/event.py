@@ -1,15 +1,11 @@
 import datetime
-import importlib
 
 from disnake.ext import commands, tasks
 import disnake
 
-import utility.loader as loader
 from utility.dataIO import fileIO
 import traceback
 import sys
-
-importlib.reload(loader)
 
 
 class Event(commands.Cog):
@@ -84,7 +80,6 @@ class Event(commands.Cog):
             )
             return await inter.send(embed=embed, ephemeral=True)
         raise error
-
 
     # @commands.Cog.listener()
     async def on_message(self, message):

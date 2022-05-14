@@ -6,8 +6,7 @@ from disnake.ext import commands, components
 from disnake.ui import Button, ActionRow
 from disnake import ButtonStyle
 
-from utility import loader
-from utility.utils import occurance, in_shop, in_battle
+from utility.utils import occurance, in_shop, in_battle, create_player_info
 
 
 class ShopMenu:
@@ -218,7 +217,7 @@ class ShopCog(commands.Cog):
     @in_shop()
     @in_battle()
     async def shop(self, inter):
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": inter.author.id})
 
         location = info["location"]

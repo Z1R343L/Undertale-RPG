@@ -1,17 +1,10 @@
-import importlib
-
-
 from disnake.ext import commands, components
 import disnake
 from disnake.ui import Button, ActionRow
 from disnake import ButtonStyle
 
-import utility.loader as core
-import utility.loader as loader
 from utility.dataIO import fileIO
-from utility.utils import in_shop, in_battle
-
-importlib.reload(core)
+from utility.utils import in_shop, in_battle, create_player_info
 
 
 class Traveling(commands.Cog):
@@ -25,7 +18,7 @@ class Traveling(commands.Cog):
     async def travel(self, inter):
         """Travel to other spots of the world"""
 
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": inter.author.id})
         data = fileIO("data/traveling.json", "load")
         lista = []
@@ -103,7 +96,7 @@ class Traveling(commands.Cog):
             )
             em = disnake.Embed(
                 description=f"**{inter.author.name}\n\nYou have arrived {answer}**",
-                color = disnake.Color.red(),
+                color=disnake.Color.red(),
             )
             await inter.edit_original_message(components=[])
 

@@ -1,15 +1,13 @@
 import asyncio
 import random
+import time
 
 import disnake
-from disnake.ext import commands, components
 from disnake.enums import ButtonStyle
-import utility.loader as loader
-
+from disnake.ext import commands, components
 from disnake.ui import Button, ActionRow
 
 from utility import utils
-import time
 
 
 async def count(keys, value):
@@ -82,7 +80,7 @@ class Battle:
                 if self.bot.locations[i]["RQ_LV"] == info["level"]:
                     await asyncio.sleep(3)
                     await self.channel.send(
-                        f"{self.author.mention}\n\n" + 
+                        f"{self.author.mention}\n\n" +
                         f"Congrats, You unlocked {i}, you can go there by running u?travel"
                     )
             return True
@@ -129,9 +127,8 @@ class Battle:
 
         self.menus.append(msg.id)
         await asyncio.sleep(60)
-        
-        if msg.id in self.menus:
 
+        if msg.id in self.menus:
             await msg.edit(content=f"{self.author.mention} You took to long to reply", components=[])
             return await self.end()
         return
@@ -188,14 +185,16 @@ class Battle:
             if info["multi_g"] > 1 and info["multi_xp"] > 1:
                 gold = gold * info["multi_xp"]
                 exp = exp * info["multi_g"]
-                embed.description += (f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}**"
-                                      f" ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})")
+                embed.description += (
+                    f"\n\n**[MULTIPLIER]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}**"
+                    f" ({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})")
             # booster
             if self.author.id in self.bot.boosters["boosters"]:
                 exp = exp * 2
                 gold = gold * 2
-                embed.description += (f"\n\n**[BOOSTER MULTIPLIER]**\n> **[2x]** XP: **+{int(exp - enemy_xp)}**"
-                                      f" ({int(exp)})\n> **[2x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
+                embed.description += (
+                    f"\n\n**[BOOSTER MULTIPLIER]**\n> **[2x]** XP: **+{int(exp - enemy_xp)}**"
+                    f" ({int(exp)})\n> **[2x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})"
                                       )
 
             if event is not None:
@@ -205,8 +204,9 @@ class Battle:
                 exp = exp * event["multi_xp"]
                 name = event["name"]
 
-                embed.description += (f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}**"
-                                     f"({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})")
+                embed.description += (
+                    f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}**"
+                    f"({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})")
 
             info["selected_monster"] = None
             info["monster_hp"] = 0
@@ -259,7 +259,10 @@ class Battle:
 
         user_hp_after = int(user_hp) - int(enemy_dmg)
         gold_lost = random.randint(10, 40) + info["level"]
-        atem.description = f"**{enemy_define}** Attacks\n**-{enemy_dmg}HP**\ncurrent hp: **{user_hp_after}HP\n{await utils.get_bar(user_hp_after, user_max_hp)}**"
+        atem.description = (
+            f"**{enemy_define}** Attacks\n**-{enemy_dmg}HP**\ncurrent hp: **{user_hp_after}HP\n"
+            f"{await utils.get_bar(user_hp_after, user_max_hp)}**"
+        )
         atem.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
         )
@@ -345,7 +348,7 @@ class Battle:
             await self.end()
 
     async def use(self):
-        await loader.create_player_info(self.inter, self.author)
+        await utils.create_player_info(self.inter, self.author)
         data = await self.bot.players.find_one({"_id": self.author.id})
         if len(data["inventory"]) == 0:
             await self.channel.send(f"{self.author.mention} You have nothing to use")
@@ -480,9 +483,8 @@ class Fight(commands.Cog):
         except:
             pass
         if item == "back":
-
             await inter.edit_original_message(components=[])
-            
+
             return await inter.bot.fights[str(uid)].menu()
 
         await inter.edit_original_message(components=[])
@@ -494,7 +496,7 @@ class Fight(commands.Cog):
         if inter.author.id != uid:
             await inter.send('This is not yours kiddo!', ephemeral=True)
             return
-        
+
         try:
             await inter.response.defer()
         except:
@@ -523,7 +525,7 @@ class Fight(commands.Cog):
             )
             return await inter.send(embed=embed)
 
-        await loader.create_player_info(inter, inter.author)
+        await utils.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
 
         curr_time = time.time()
@@ -532,7 +534,10 @@ class Fight(commands.Cog):
         if 1800.0 >= delta > 0:
             seconds = 1800 - delta
             em = disnake.Embed(
-                description=f"**You can't fight a boss yet!**\n\n**You can fight a boss <t:{int(time.time()) + int(seconds)}:R>**",
+                description=(
+                    f"**You can't fight a boss yet!**\n\n"
+                    f"**You can fight a boss <t:{int(time.time()) + int(seconds)}:R>**"
+                ),
                 color=disnake.Color.red(),
             )
             em.set_thumbnail(
@@ -582,7 +587,7 @@ class Fight(commands.Cog):
     @utils.in_battle()
     async def fight(self, inter):
         """Fight Monsters and gain EXP and Gold"""
-        await loader.create_player_info(inter, inter.author)
+        await utils.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
 
         location = data["location"]

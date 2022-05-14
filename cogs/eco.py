@@ -1,16 +1,12 @@
-import importlib
 import random
 import time
 
 import disnake
 from disnake.ext import commands
 
-import utility.loader as loader
-from utility.utils import get_bar, in_battle, in_shop
+from utility.utils import get_bar, in_battle, in_shop, create_player_info
 
 from datetime import datetime
-
-importlib.reload(loader)
 
 starttime = time.time()
 
@@ -53,7 +49,7 @@ class Economy(commands.Cog):
     @in_shop()
     @in_battle()
     async def reset(self, inter):
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         old_data = await self.bot.players.find_one({"_id": inter.author.id})
 
         if old_data["level"] < 70:
@@ -87,7 +83,7 @@ class Economy(commands.Cog):
 
         if view.choice:
             await self.bot.players.delete_one({"_id": inter.author.id})
-            await loader.create_player_info(inter, inter.author)
+            await create_player_info(inter, inter.author)
             new_data = await self.bot.players.find_one({"_id": inter.author.id})
             new_data["resets"] = old_data["resets"] + 1
             new_data["multi_g"] = old_data["multi_g"] + 0.4
@@ -110,7 +106,7 @@ class Economy(commands.Cog):
         """Claim Your daily Reward!"""
         author = inter.author
 
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         if author.id not in inter.bot.boosters["boosters"]:
             await inter.send(
                 "You are not a booster!, only people who boost our support server are able to get the rewards!")
@@ -149,7 +145,7 @@ class Economy(commands.Cog):
     async def daily(self, inter):
         """Claim Your daily Reward!"""
         author = inter.author
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
 
         info = await self.bot.players.find_one({"_id": author.id})
         goldget = 500 * info["multi_g"]
@@ -180,7 +176,7 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 7, commands.BucketType.user)
     async def gold(self, inter):
         """Check your gold balance"""
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": inter.author.id})
         bal = info["gold"]
         embed = disnake.Embed(
@@ -204,7 +200,7 @@ class Economy(commands.Cog):
         if player.bot:
             await inter.send("Nice try!")
             return
-        await loader.create_player_info(inter, player)
+        await create_player_info(inter, player)
         info = await self.bot.players.find_one({"_id": player.id})
 
         max_xp = 100 * info["level"]
@@ -279,7 +275,7 @@ class Economy(commands.Cog):
     async def inventory(self, inter):
         """Shows your inventory"""
         author = inter.author
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": author.id})
 
         def countoccurrences(stored, value):
@@ -312,7 +308,7 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 12, commands.BucketType.user)
     async def supporter(self, inter):
         """Join our support server and claim a bunch of gold"""
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         while True:
             if inter.guild.id != 817437132397871135:
                 await inter.send(

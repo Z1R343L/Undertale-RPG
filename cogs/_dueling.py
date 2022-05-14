@@ -7,9 +7,7 @@ from disnake.ext import commands, components
 from disnake.ui import Button, ActionRow
 from disnake.enums import ButtonStyle
 
-import utility.loader as loader
-
-importlib.reload(loader)
+from utility.utils import create_player_info
 
 
 class Duel(commands.Cog):
@@ -313,7 +311,7 @@ class Items:
                 stored[value] = 1
                 return
 
-        await loader.create_player_info(ctx, p1)
+        await utils.create_player_info(ctx, p1)
         data = await ctx.bot.players.find_one({"_id": p1.id})
         if len(data["inventory"]) == 0:
             await ctx.send("You have nothing to use")

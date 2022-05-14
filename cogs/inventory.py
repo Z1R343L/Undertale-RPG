@@ -5,8 +5,7 @@ from disnake.ext import commands, components
 
 from disnake import ButtonStyle
 from disnake.ui import Button, ActionRow
-import utility.loader as loader
-from utility.utils import occurance, in_shop, in_battle
+from utility.utils import occurance, in_shop, in_battle, create_player_info
 
 
 class Shop(commands.Cog):
@@ -66,7 +65,7 @@ class Shop(commands.Cog):
     @in_battle()
     async def use(self, inter, *, item: str = None):
 
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         if item is None:
             data = await inter.bot.players.find_one({"_id": inter.author.id})
             if len(data["inventory"]) == 0:
@@ -143,7 +142,7 @@ class Shop(commands.Cog):
     @in_battle()
     async def open(self, inter):
 
-        await loader.create_player_info(inter, inter.author)
+        await create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
         standard = data["standard crate"]
         determin = data["determination crate"]
