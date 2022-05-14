@@ -23,7 +23,7 @@ class Developer_Tools(commands.Cog):
             try:
                 await self.bot.fights[i].end()
             except:
-                del await self.bot.fights[i].end()
+                del self.bot.fights[i]
         await inter.send("Done!")
 
     @commands.command()
