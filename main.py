@@ -33,6 +33,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.cluster = None
         self.db = None
         self.players = None
+        self.boosters = None
         self.db = None
         self.cluster = None
         self.shopping = None
@@ -47,18 +48,17 @@ class UndertaleBot(commands.AutoShardedBot):
         self.ENABLED = False
         self.help_command = None
         self.events = None
-        self.cmd_list = ["fboss", "bossfight", "boss"]
         self.fights = {}
         self.shops = {}
         self.duels = {}
 
     async def on_shard_connect(self, shard):
-        print(f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN} is connected.{bcolors.ENDC}")
-        if shard == 0:
-            await self.db_load()
-            await self.load_all_cogs()
+        print(
+            f"{bcolors.GREEN} shard {bcolors.BOLD}{bcolors.CYAN}{shard}{bcolors.ENDC}{bcolors.GREEN}"
+            f"is connected.{bcolors.ENDC}"
+        )
 
-    async def load_all_cogs(self):
+    def load_all_cogs(self):
         for filename in os.listdir("./cogs"):
             if filename.endswith(".py") and not filename.startswith("_"):
                 self.load_extension(f"cogs.{filename[:-3]}")
@@ -66,8 +66,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.ENABLED = True
         return
 
-    async def db_load(self):
-        await self.wait_until_ready()
+    def db_load(self):
         self.cluster = AsyncIOMotorClient(self.MongoUrl)
         self.db = self.cluster["database"]
         self.players = self.db["players"]
@@ -87,6 +86,7 @@ bot = UndertaleBot(
         513351917481623572,
     ]
 )
-
+bot.db_load()
+bot.load_all_cogs()
 bot.load_extension("jishaku")
 bot.run(bot.BotToken)

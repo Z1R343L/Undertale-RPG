@@ -93,6 +93,8 @@ class Economy(commands.Cog):
             new_data["multi_g"] = old_data["multi_g"] + 0.4
             new_data["multi_xp"] = old_data["multi_xp"] + 0.2
             new_data["tokens"] = old_data["tokens"]
+            new_data["kills"] = old_data["kills"]
+            new_data["deaths"] = old_data["deaths"]
             await self.bot.players.update_one(
                 {"_id": inter.author.id}, {"$set": new_data}
             )

@@ -11,27 +11,31 @@ class Leaderboard(commands.Cog):
 
     @commands.command(aliases=["lb"])
     @commands.cooldown(1, 30, commands.BucketType.guild)
-    async def leaderboard(self, ctx, arg: str = "level"):
+    async def leaderboard(self, ctx, lb: str = "level"):
         """see who's on the lead on gold amount"""
 
-        data = self.bot.players.find().limit(10).sort(arg, -1)
+        if lb not in ["gold", "resets", "kills", "deaths", "spares"]:
+            return
+
+        data = self.bot.players.find().limit(10).sort(lb, -1)
         users = []
         async for raw in data:
             users.append(raw)
 
-        users.sort(key=lambda user: user[arg], reverse=True)
+        users.sort(key=lambda user: user[lb], reverse=True)
 
         output = [""]
         for i, user in enumerate(users, 1):
+            player = await self.bot.fetch_user(user['_id'])
             output.append(
-                f"{i}. {user['name']}: {humanize.intcomma(int(user[arg]))} {arg}"
+                f"{i}. {str(player)}: {humanize.intcomma(int(user[lb]))} {lb}"
             )
             if i == 10:
                 break
         output.append("")
         result = "\n".join(output)
         embed = disnake.Embed(
-            title=f"{arg} Leaderboard:",
+            title=f"{lb} Leaderboard:",
             description=f"**{result}**",
             color=disnake.Colour.gold(),
         )
