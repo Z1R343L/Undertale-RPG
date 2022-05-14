@@ -62,7 +62,7 @@ class Developer_Tools(commands.Cog):
             msg += f"**Name**: {name}\n**Playing Since**:{since}\n"
 
         embed = disnake.Embed(
-            title="list of people inside the fight flag",
+            title="list of people inside the shop flag",
             description=msg
         )
         embed.set_thumbnail(

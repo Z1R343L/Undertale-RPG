@@ -54,7 +54,7 @@ class UndertaleBot(commands.AutoShardedBot):
 
     async def on_shard_connect(self, shard):
         print(
-            f"{ConsoleColors.GREEN} shard {ConsoleColors.BOLD}{ConsoleColors.CYAN}{shard}{ConsoleColors.ENDC}{ConsoleColors.GREEN}"
+            f"{ConsoleColors.GREEN} shard {ConsoleColors.BOLD}{ConsoleColors.CYAN}{shard} {ConsoleColors.ENDC}{ConsoleColors.GREEN}"
             f"is connected.{ConsoleColors.ENDC}"
         )
 

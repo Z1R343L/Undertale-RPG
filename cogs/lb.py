@@ -11,11 +11,21 @@ class Leaderboard(commands.Cog):
 
     @commands.command(aliases=["lb"])
     @commands.cooldown(1, 30, commands.BucketType.guild)
-    async def leaderboard(self, ctx, lb: str = "level"):
+    async def leaderboard(self, inter, lb: str = "gold"):
         """see who's on the lead on gold amount"""
 
-        if lb not in ["gold", "resets", "kills", "deaths", "spares"]:
-            return
+        if lb not in ["gold", "resets", "kills", "deaths", "spares"] or None:
+            embed = disnake.Embed(
+                title=f"There is no such leaderboard as {lb}",
+                description=(
+                    "You can only choose from the following leaderboards:\n\n"
+                    "**gold, resets, kills, deaths, spares**."
+                ),
+                color=disnake.Color.red()
+            )
+            embed.set_thumbnail(url="https://media.discordapp.net/attachments/900274624594575361/974933965356019772/trophy.png")
+            inter.command.reset_cooldown(inter)
+            return await inter.send(embed=embed)
 
         data = self.bot.players.find().limit(10).sort(lb, -1)
         users = []
@@ -27,6 +37,16 @@ class Leaderboard(commands.Cog):
         output = [""]
         for i, user in enumerate(users, 1):
             player = await self.bot.fetch_user(user['_id'])
+            if i == 1:
+                i = ":medal:"
+            if i == 2:
+                i = ":second_place:"
+            if i == 3:
+                i = ":third_place:"
+
+            if len(str(player)) >= 24:
+                player = str(player)[:-10]
+
             output.append(
                 f"{i}. {str(player)}: {humanize.intcomma(int(user[lb]))} {lb}"
             )
@@ -39,7 +59,13 @@ class Leaderboard(commands.Cog):
             description=f"**{result}**",
             color=disnake.Colour.gold(),
         )
-        await ctx.send(embed=embed)
+        embed.set_image(
+            url="https://media.discordapp.net/attachments/900274624594575361/974936472199249970/lb_image.png"
+        )
+        embed.set_thumbnail(
+            url="https://media.discordapp.net/attachments/900274624594575361/974933965356019772/trophy.png"
+        )
+        await inter.send(embed=embed)
 
 
 def setup(bot):
