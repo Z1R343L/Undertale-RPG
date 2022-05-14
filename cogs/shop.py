@@ -259,6 +259,7 @@ class ShopCog(commands.Cog):
             await inter.response.defer()
         except:
             pass
+
         inter.bot.shops[uid].latest_inter = inter
         await getattr(inter.bot.shops[uid], action)()
 
@@ -334,8 +335,11 @@ class ShopCog(commands.Cog):
             await inter.send('This is not your kiddo!', ephemeral=True)
             return
 
-        msg_id = inter.bot.shops[uid].menus[0]
-        inter.bot.shops[uid].menus.remove(msg_id)
+        try:
+            msg_id = inter.bot.shops[uid].menus[0]
+            inter.bot.shops[uid].menus.remove(msg_id)
+        except:
+            pass
 
         info = await inter.bot.players.find_one({"_id": inter.author.id})
 

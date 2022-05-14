@@ -475,8 +475,11 @@ class Fight(commands.Cog):
             await inter.send('This is not yours kiddo!', ephemeral=True)
             return
 
-        msg_id = inter.bot.fights[str(uid)].menus[0]
-        inter.bot.fights[str(uid)].menus.remove(msg_id)
+        try:
+            msg_id = inter.bot.fights[str(uid)].menus[0]
+            inter.bot.fights[str(uid)].menus.remove(msg_id)
+        except:
+            pass
 
         try:
             await inter.response.defer()
@@ -503,8 +506,11 @@ class Fight(commands.Cog):
             pass
 
         await inter.edit_original_message(components=[])
-        msg_id = inter.bot.fights[str(uid)].menus[0]
-        inter.bot.fights[str(uid)].menus.remove(msg_id)
+        try:
+            msg_id = inter.bot.fights[str(uid)].menus[0]
+            inter.bot.fights[str(uid)].menus.remove(msg_id)
+        except:
+            pass
 
         return await getattr(inter.bot.fights[str(uid)], action)()
 
