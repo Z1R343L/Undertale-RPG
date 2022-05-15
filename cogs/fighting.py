@@ -593,13 +593,13 @@ class Fight(commands.Cog):
 
         location = data["location"]
 
-        if data[f"{location}_kills"] >= self.bot.locations[location]["max_kills"]:
-            embed = disnake.Embed(
-                title="BUT NOBODY CAME",
-                description="You did it, killed everyone here, Now what?",
-                color=disnake.Color.red()
-            )
-            return await inter.send(embed=embed)
+        # if data[f"{location}_kills"] >= self.bot.locations[location]["max_kills"]:
+        #    embed = disnake.Embed(
+        #         title="BUT NOBODY CAME",
+        #         description="You did it, killed everyone here, Now what?",
+        #         color=disnake.Color.red()
+        #     )
+        #     return await inter.send(embed=embed)
 
         random_monster = []
 
