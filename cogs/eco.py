@@ -52,7 +52,7 @@ class Economy(commands.Cog):
         await create_player_info(inter, inter.author)
         old_data = await self.bot.players.find_one({"_id": inter.author.id})
 
-        if old_data["level"] < 70:
+        if old_data["level"] < 50:
             await inter.send(
                 "you are not yet passed, reach **LVL70**, and you shall come back"
             )
