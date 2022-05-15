@@ -24,6 +24,7 @@ class Battle:
             author: disnake.Member,
             bot: commands.AutoShardedBot,
             monster: str,
+            monster_hp: int,
             inter: disnake.CommandInteraction,
             kind: int,
             channel: disnake.TextChannel
@@ -38,6 +39,7 @@ class Battle:
         self.time = int(time.time())
         self.kind = kind  # 0 for monster, 1 for boss, 2 for special.
         self.menus = []
+        self.monster_hp = monster_hp
 
     # ending the fight with the id
     async def end(self):
@@ -116,7 +118,7 @@ class Battle:
         health = info["health"]
         monster = self.monster
         title = self.bot.monsters[monster]["title"]
-        enemy_hp = info["monster_hp"]
+        enemy_hp = self.monster_hp
         damage = self.bot.monsters[monster]["atk"]
 
         embed = disnake.Embed(
@@ -145,10 +147,8 @@ class Battle:
         info = await self.bot.players.find_one({"_id": self.author.id})
         user_wep = info["weapon"]
         monster = self.monster
-        if monster is None:
-            monster = info["last_monster"]
         damage = info["damage"]
-        enemy_hp = info["monster_hp"]
+        enemy_hp = self.monster_hp
 
         min_dmg = self.bot.items[user_wep]["min_dmg"]
         max_dmg = self.bot.items[user_wep]["max_dmg"]
@@ -213,10 +213,16 @@ class Battle:
                     f"\n\n**[{name.upper()} EVENT!]**\n> **[{xp_multi}x]** XP: **+{int(exp - enemy_xp)}**"
                     f"({int(exp)})\n> **[{gold_multi}x]** GOLD: **+{int(gold - enemy_gold)}** ({int(gold)})")
 
-            info["selected_monster"] = None
-            info["monster_hp"] = 0
             if self.kind == 1:
+                location = info["location"]
+
+                info[f"{location}_boss"] = True
                 info["rest_block"] = time.time()
+            else:
+                location = info["location"]
+
+                info[f"{location}_kills"] = info[f"{location}_kills"] + 1
+
 
             info["gold"] = info["gold"] + gold
             info["exp"] = info["exp"] + exp
@@ -236,7 +242,7 @@ class Battle:
             print(f"{self.author} has ended the fight")
             return await self.end()
         else:
-            info["monster_hp"] = enemy_hp_after
+            self.monster_hp = enemy_hp_after
             await self.bot.players.update_one({"_id": author.id}, {"$set": info})
             await asyncio.sleep(2)
             return await self.counter_attack()
@@ -246,8 +252,6 @@ class Battle:
 
         info = await self.bot.players.find_one({"_id": self.author.id})
         enemy_define = self.monster
-        if enemy_define is None:
-            enemy_define = info["last_monster"]
         enemy_dmg = data[enemy_define]["atk"]
         user_ar = info["armor"].lower()
         min_dfs = self.bot.items[user_ar]["min_dfs"]
@@ -278,9 +282,7 @@ class Battle:
             info["gold"] = info["gold"] - gold_lost
             info["gold"] = max(info["gold"], 0)
             info["deaths"] = info["deaths"] + 1
-            info["health"] = 10
-            info["selected_monster"] = None
-            info["monster_hp"] = 0
+            info["health"] = 100
             await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
 
             await asyncio.sleep(3)
@@ -412,22 +414,18 @@ class Battle:
     async def spare(self):
         try:
             info = await self.bot.players.find_one({"_id": self.author.id})
-            monster = info["selected_monster"]
-            if monster is None:
-                monster = info["last_monster"]
+            monster = self.monster
 
             if monster == "sans":
                 await self.channel.send(
                     "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
                 )
-                info["selected_monster"] = None
                 info["health"] = 10
                 info["rest_block"] = time.time()
                 await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
                 await self.end()
 
             func = ["spared", "NotSpared", "spared"]
-            monster = info["selected_monster"]
             sprfunc = random.choice(func)
             embed1 = disnake.Embed(
                 title="Mercy", description=f"You tried to spare {monster}"
@@ -452,10 +450,11 @@ class Battle:
                 if self.kind == 1:
                     info["rest_block"] = time.time()
 
-                info["selected_monster"] = None
                 print(f"{self.author} has ended the fight (sparing)")
                 # inter.command.reset_cooldown(inter)
                 await msg.edit(embed=embed3)
+                info["spares"] = info["spares"] + 1
+
                 await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
                 await self.end()
             elif sprfunc == "NotSpared":
@@ -524,20 +523,18 @@ class Fight(commands.Cog):
     @utils.in_battle()
     async def boss(self, inter):
 
-        if str(inter.author.id) in inter.bot.fights:
-            await inter.send(inter.author.mention + " You're already in a fight")
-            return
-
-        if str(inter.author.id) in inter.bot.shops:
-            embed = disnake.Embed(
-                title="You have a shop dialogue open",
-                description=f"[Click here]({inter.bot.shops[str(inter.author.id)].msg.jump_url})",
-                color=disnake.Color.random()
-            )
-            return await inter.send(embed=embed)
-
         await utils.create_player_info(inter, inter.author)
         data = await inter.bot.players.find_one({"_id": inter.author.id})
+
+        location = data["location"]
+
+        if data[f"{location}_boss"]:
+            embed = disnake.Embed(
+                title="BUT NOBODY CAME",
+                description="You did it, killed the boss here, whatcha' lookin for now?",
+                color=disnake.Color.red()
+            )
+            return await inter.send(embed=embed)
 
         curr_time = time.time()
         delta = int(curr_time) - int(data["rest_block"])
@@ -576,13 +573,6 @@ class Fight(commands.Cog):
 
         enemy_hp = random.randint(mon_hp_min, mon_hp_max)
 
-        output = {
-            "selected_monster": monster,
-            "monster_hp": enemy_hp,
-            "last_monster": monster
-        }
-
-        await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a boss fight")
         fight = Battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
@@ -602,6 +592,15 @@ class Fight(commands.Cog):
         data = await inter.bot.players.find_one({"_id": inter.author.id})
 
         location = data["location"]
+
+        if data[f"{location}_kills"] >= self.bot.locations[location]["max_kills"]:
+            embed = disnake.Embed(
+                title="BUT NOBODY CAME",
+                description="You did it, killed everyone here, Now what?",
+                color=disnake.Color.red()
+            )
+            return await inter.send(embed=embed)
+
         random_monster = []
 
         for i in inter.bot.monsters:
@@ -614,7 +613,7 @@ class Fight(commands.Cog):
         info = inter.bot.monsters
 
         if len(random_monster) == 0:
-            await inter.send(f"There are no monsters here?, You are for sure inside a /boss area only!")
+            await inter.send(f"There are no monsters here?, You are for sure inside a u?boss area only!")
             return
 
         monster = random.choice(random_monster)
@@ -624,15 +623,8 @@ class Fight(commands.Cog):
 
         enemy_hp = random.randint(mon_hp_min, mon_hp_max)
 
-        output = {
-            "selected_monster": monster,
-            "monster_hp": enemy_hp,
-            "last_monster": monster
-        }
-
-        await inter.bot.players.update_one({"_id": inter.author.id}, {"$set": output})
         print(f"{inter.author} has entered a fight")
-        fight = Battle(inter.author, inter.bot, monster, inter, 0, inter.channel)
+        fight = Battle(inter.author, inter.bot, monster, enemy_hp, inter, 0, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
         try:
             await fight.menu()

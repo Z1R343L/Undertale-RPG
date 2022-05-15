@@ -5,7 +5,7 @@ from disnake.ext import commands, components
 
 from disnake import ButtonStyle
 from disnake.ui import Button, ActionRow
-from utility.utils import occurance, in_shop, in_battle, create_player_info
+from utility.utils import occurrence, in_shop, in_battle, create_player_info
 
 
 class Shop(commands.Cog):
@@ -85,7 +85,7 @@ class Shop(commands.Cog):
             inventory = []
             store = {}
             for data in data["inventory"]:
-                occurance(store, data)
+                occurrence(store, data)
 
             for k, v in store.items():
                 inventory.append({f"{k}": f"{v}x"})

@@ -20,7 +20,7 @@ class Traveling(commands.Cog):
 
         await create_player_info(inter, inter.author)
         info = await self.bot.players.find_one({"_id": inter.author.id})
-        data = fileIO("data/traveling.json", "load")
+        data = self.bot.locations
         lista = []
 
         for key in data:
@@ -75,7 +75,7 @@ class Traveling(commands.Cog):
             return
 
         info = await self.bot.players.find_one({"_id": inter.author.id})
-        data = fileIO("data/traveling.json", "load")
+        data = inter.bot.locations
         answer = place
         await inter.response.defer()
 
@@ -87,6 +87,14 @@ class Traveling(commands.Cog):
             return await inter.send(f"You are Already At {answer}.", ephemeral=True)
 
         if answer in data:
+            location = info["location"]
+
+            if info[f"{location}_boss"] is not True:
+                if info[f"{answer}_boss"]:
+                    pass
+                else:
+                    return await inter.send("You have to kill this boss's area before going on!", ephemeral=True)
+
             info["location"] = answer
             out = {
                 "location": answer

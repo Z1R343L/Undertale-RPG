@@ -6,7 +6,7 @@ from disnake.ext import commands, components
 from disnake.ui import Button, ActionRow
 from disnake.enums import ButtonStyle
 
-from utility.utils import create_player_info, occurance
+from utility.utils import create_player_info, occurrence
 
 
 class DuelCog(commands.Cog):
@@ -266,7 +266,7 @@ class Duel:
         inventory = []
         store = {}
         for data in data["inventory"]:
-            occurance(store, data)
+            occurrence(store, data)
         for k, v in store.items():
             inventory.append({f"{k}": f"{v}x"})
         for item in inventory:
