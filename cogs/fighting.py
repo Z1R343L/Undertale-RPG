@@ -574,7 +574,7 @@ class Fight(commands.Cog):
         enemy_hp = random.randint(mon_hp_min, mon_hp_max)
 
         print(f"{inter.author} has entered a boss fight")
-        fight = Battle(inter.author, inter.bot, monster, inter, 1, inter.channel)
+        fight = Battle(inter.author, inter.bot, monster, enemy_hp, inter, 1, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
         try:
             await fight.menu()
