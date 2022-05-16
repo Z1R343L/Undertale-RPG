@@ -80,7 +80,7 @@ async def create_player_info(ctx, mem):
             # boss booleans
             "ruins_boss" : False,
             "snowdin_boss" : False,
-            "waterfall boss" : False,
+            "waterfall_boss" : False,
             "hotland_boss" : False,
             "core_boss" : False,
             "the barrier_boss" : False,
