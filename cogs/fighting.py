@@ -578,7 +578,7 @@ class Fight(commands.Cog):
         fight = Battle(inter.author, inter.bot, monster, enemy_hp, inter, 1, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
         try:
-            await inter.send("A Fight will start soon!", ephemeral=True)
+            await inter.send("A Fight will start soon!")
             await asyncio.sleep(2)
             await fight.menu()
         except Exception as e:
@@ -630,7 +630,7 @@ class Fight(commands.Cog):
         fight = Battle(inter.author, inter.bot, monster, enemy_hp, inter, 0, inter.channel)
         fight.bot.fights[str(inter.author.id)] = fight
         try:
-            await inter.send("A Fight will start soon!", ephemeral=True)
+            await inter.send("A Fight will start soon!")
             await asyncio.sleep(2)
             await fight.menu()
         except Exception as e:
