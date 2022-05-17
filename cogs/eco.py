@@ -54,7 +54,7 @@ class Economy(commands.Cog):
 
         if old_data["level"] < 50:
             await inter.send(
-                "you are not yet passed, reach **LVL70**, and you shall come back"
+                "You cannot reset this world yet., reach **LVL70**, and you shall come back"
             )
             return
 
