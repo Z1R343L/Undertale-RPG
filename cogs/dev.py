@@ -11,14 +11,14 @@ class Developer_Tools(commands.Cog):
         self.bot = bot
         self.cmds = get_all_funcs(self)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def spit(self, inter, member: disnake.User = None):
         member = member or inter.author
         info = await inter.bot.players.find_one({"_id": member.id})
         await inter.send(info)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def fix(self, inter):
         """Fix, duh?"""
@@ -29,7 +29,7 @@ class Developer_Tools(commands.Cog):
                 del self.bot.fights[i]
         await inter.send("Done!")
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def fix_shop(self, inter):
         for i in self.bot.shops:
@@ -40,7 +40,7 @@ class Developer_Tools(commands.Cog):
 
         await inter.send("Done!")
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def in_fight(self, inter):
         data = inter.bot.fights
@@ -60,7 +60,7 @@ class Developer_Tools(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def in_shop(self, inter):
         data = inter.bot.shops
@@ -80,17 +80,13 @@ class Developer_Tools(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.is_owner()
     async def vanish(self, inter, user: disnake.User = None):
         if user is None:
             return
         self.bot.players.delete_one({"_id": user.id})
         await inter.send("Done")
-
-    @commands.slash_command(name="hallo", guilds_ids=[817437132397871135])
-    async def greetings(self, inter):
-        await inter.send("wuddap")
 
 def setup(bot):
     bot.add_cog(Developer_Tools(bot))
