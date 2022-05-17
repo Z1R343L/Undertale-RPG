@@ -11,6 +11,7 @@ class TopGG(commands.Cog):
         self.bot = bot
         self.bot.topggpy = topgg.WebhookManager(bot).dbl_webhook("/dblwebhook", "dady2005")
         bot.topggpy.run(55111)
+        self.cmds = []
 
     @commands.Cog.listener()
     async def on_dbl_vote(self, data):

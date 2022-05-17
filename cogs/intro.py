@@ -1,6 +1,7 @@
 import disnake
 from disnake.ext import commands, components
 
+from utility.utils import get_all_funcs
 #
 intro = [
     [
@@ -114,8 +115,9 @@ class Intro(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.cmds = get_all_funcs(self)
 
-    @commands.command()
+    @commands.slash_command()
     async def intro(self, inter) -> None:
         await inter.send(
             embed=intro_embs[0],

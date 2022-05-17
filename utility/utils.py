@@ -1,7 +1,31 @@
-from disnake.ext import commands
-import disnake
 import time
 
+import disnake
+from disnake.ext import commands
+
+fr_list = [
+    "listener"
+    , "food"
+    , "action"
+    , "data_task"
+    , "on_guild_join"
+    , "on_command_error"
+    , "on_slash_command_error"
+    , "on_message"
+    , "set_event"
+    , "post_dbl"
+    , "intro_controller"
+    , "weapon"
+    , "armor"
+    , "u_selected"
+    , "c_selected"
+    , "shutdown"
+    , "shop_listener"
+    , "shop_selector_listener"
+    , "selected"
+    , "s_selected"
+    , "t_selected"
+]
 
 class ConsoleColors:
     HEADER = '\033[95m'
@@ -28,6 +52,16 @@ def in_battle():
         return True
 
     return commands.check(predicate)
+
+
+def get_all_funcs(cls):
+    methods = []
+    for method in dir(cls):
+        if callable(getattr(cls, method)):
+            if not method.startswith(
+                    '_') and "bot" not in method and "cog" not in method and "has" not in method and "get" not in method and "walk" not in method and method not in fr_list:
+                methods.append(getattr(cls, method))
+    return methods
 
 
 def in_shop():
@@ -78,20 +112,20 @@ async def create_player_info(ctx, mem):
             "rest_block": 0,
 
             # boss booleans
-            "ruins_boss" : False,
-            "snowdin_boss" : False,
-            "waterfall_boss" : False,
-            "hotland_boss" : False,
-            "core_boss" : False,
-            "the barrier_boss" : False,
-            "last corridor_boss" : False,
+            "ruins_boss": False,
+            "snowdin_boss": False,
+            "waterfall_boss": False,
+            "hotland_boss": False,
+            "core_boss": False,
+            "the barrier_boss": False,
+            "last corridor_boss": False,
 
             # counters
-            "ruins_kills" : 0,
-            "snowdin_kills" : 0,
-            "waterfall_kills" : 0,
-            "hotland_kills" : 0,
-            "core_kills" : 0,
+            "ruins_kills": 0,
+            "snowdin_kills": 0,
+            "waterfall_kills": 0,
+            "hotland_kills": 0,
+            "core_kills": 0,
 
             "kills": 0,
             "deaths": 0,

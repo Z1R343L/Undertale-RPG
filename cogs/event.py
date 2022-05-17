@@ -1,11 +1,12 @@
 import datetime
+import sys
+import traceback
 
-from disnake.ext import commands, tasks
 import disnake
+from disnake.ext import commands, tasks
 
 from utility.dataIO import fileIO
-import traceback
-import sys
+from utility.utils import get_all_funcs
 
 
 class Event(commands.Cog):
@@ -13,15 +14,11 @@ class Event(commands.Cog):
         self.bot = bot
         self.data_task.start()
         self.last_timeStamp = datetime.datetime.utcfromtimestamp(0)
-        self.old_lst = ['u?close', 'u?ping', 'u?latency', 'u?cleanup', 'u?sell', 'u?shop',
-                        'u?buy', 'u?tutorial', 'u?use', 'u?consume', 'u?heal', 'u?equip', 'u?open',
-                        'u?opencrate', 'u?open_crate', 'u?crate', 'u?travel', 'u?tv', 'u?spit', 'u?help',
-                        'u?reset', 'u?Disable', 'u?disable', 'u?global', 'u?shut', 'u?daily', 'u?Fix', 'u?fix',
-                        'u?jishaku', 'u?jsk', 'u?gold', 'u?bal', 'u?balance', 'u?event', 'u?ev', 'u?debug_dat',
-                        'u?leaderboard', 'u?lb', 'u?stats', 'u?level', 'u?progress', 'u?lvl', 'u?stat', 'u?profile',
-                        'u?change_prefix', 'u?set_prefix', 'u?in_fight', 'u?inventory', 'u?inv', 'u?info', 'u?about',
-                        'u?vanish', 'u?supporter', 'u?sp', 'u?vote', 'u?database_count', 'u?fight', 'u?f',
-                        'u?boss', 'u?fboss', 'u?bossfight', 'u?clearinv', 'u?invite', 'u?support']
+        self.old_lst = ['u?shop', 'u?leaderboard', 'u?tutorial', 'u?reset', 'u?use', 'u?help', 'u?travel', 'u?event',
+                        'u?booster', 'u?info', 'u?intro', 'u?daily', 'u?gold',
+                        'u?stats', 'u?inventory', 'u?invite', 'u?supporter', 'u?vote',
+                        'u?open', 'u?boss', 'u?fight']
+        self.cmds = get_all_funcs(self)
 
     @tasks.loop(seconds=5)
     async def data_task(self):
@@ -40,7 +37,7 @@ class Event(commands.Cog):
                     "Hello!, Thanks for adding me! You can use the command **u?tutorial** To "
                     "know how the bot works!")
                 break
-    
+
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if "Missing Permission" in str(error):
@@ -81,23 +78,24 @@ class Event(commands.Cog):
             return await inter.send(embed=embed, ephemeral=True)
         raise error
 
-    # @commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_message(self, message):
         if message.content in self.old_lst:
-            embed = disnake.Embed(
-                title="We have migrated to slash command!",
-                description=("discord has enforced migration to slash command at 2021 summer, on **August 31st 2022**"
-                             " all bots should be migrated on time, or they will no longer work\n\n use our bot with"
-                             " the default prefix from now on, **/<command>**\n\n*look at the images below for "
-                             "demonstration*"
-                             ),
-                color=disnake.Color.red()
-            )
-            embed.set_image(
-                url="https://cdn.discordapp.com/attachments/827651835372240986/960505423373414400/IMG_0197.png"
-            )
-
-            await message.reply(embed=embed)
+            # embed = disnake.Embed(
+            #     title="We have migrated to slash command!",
+            #     description=("discord has enforced migration to slash command at 2021 summer, on **August 31st 2022**"
+            #                  " all bots should be migrated on time, or they will no longer work\n\n use our bot with"
+            #                  " the default prefix from now on, **/<command>**\n\n*look at the images below for "
+            #                  "demonstration*"
+            #                  ),
+            #    color=disnake.Color.red()
+            # )
+            # embed.set_image(
+            #     url="https://cdn.discordapp.com/attachments/827651835372240986/960505423373414400/IMG_0197.png"
+            # )
+            ctx = await self.bot.get_context(message)
+            ctx.prefix = "u?"
+            await getattr(self.bot.raw_cmds, message.content[2:])(ctx)
 
 
 def setup(bot):

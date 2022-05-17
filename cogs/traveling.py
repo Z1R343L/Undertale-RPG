@@ -4,14 +4,15 @@ from disnake.ui import Button, ActionRow
 from disnake import ButtonStyle
 
 from utility.dataIO import fileIO
-from utility.utils import in_shop, in_battle, create_player_info
+from utility.utils import in_shop, in_battle, create_player_info, get_all_funcs
 
 
 class Traveling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.cmds = get_all_funcs(self)
 
-    @commands.command(aliases=["tv"])
+    @commands.slash_command()
     @in_shop()
     @in_battle()
     @commands.cooldown(1, 6, commands.BucketType.user)

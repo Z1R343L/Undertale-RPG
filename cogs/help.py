@@ -1,14 +1,19 @@
 import disnake
 from disnake.ext import commands
 
+from utility.utils import get_all_funcs
+
 
 class HelpCommand(commands.Cog):
     def __init__(self, bot):
         """custom help command for the bot"""
         self.bot = bot
+        self.cmds = get_all_funcs(self)
 
-    @commands.command()
+    @commands.slash_command()
     async def tutorial(self, inter):
+        if not hasattr(inter, "prefix"):
+            inter.prefix = "/"
         embed = disnake.Embed(title="Welcome to Undertale RPG!")
 
         text1 = "**This bot is an Undertale Themed RPG!, You can fight monsters from Undertale on discord!**"
@@ -35,10 +40,14 @@ class HelpCommand(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.command()
+    @commands.slash_command()
     async def help(self, ctx, command: str = None):
+        if not hasattr(ctx, "prefix"):
+            ctx.prefix = "/"
+        else:
+            pass
         if command is not None:
-            command = self.bot.get_command(command)
+            command = self.bot.get_slash_commands(command)
         if command is not None:
             embed = disnake.Embed(
                 title=f"{command.name} Command",
@@ -64,8 +73,8 @@ class HelpCommand(commands.Cog):
             if cog.qualified_name in forbid:
                 continue
 
-            cmds = cog.get_commands()
-            commands_per = "".join(f" `{command}` • " for command in cmds)
+            cmds = cog.get_slash_commands()
+            commands_per = "".join(f" `{command.name}` • " for command in cmds)
             emb.add_field(
                 name=cog.qualified_name, value=f"• {commands_per} \n\n", inline=False
             )

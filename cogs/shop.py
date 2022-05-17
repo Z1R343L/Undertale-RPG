@@ -6,7 +6,7 @@ from disnake.ext import commands, components
 from disnake.ui import Button, ActionRow
 from disnake import ButtonStyle
 
-from utility.utils import occurrence, in_shop, in_battle, create_player_info
+from utility.utils import occurrence, in_shop, in_battle, create_player_info, get_all_funcs
 
 
 class ShopMenu:
@@ -212,8 +212,9 @@ class ShopMenu:
 class ShopCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.cmds = get_all_funcs(self)
 
-    @commands.command(aliases=["buy", "sell"])
+    @commands.slash_command()
     @in_shop()
     @in_battle()
     async def shop(self, inter):

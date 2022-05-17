@@ -472,6 +472,7 @@ class Fight(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.cmds = utils.get_all_funcs(self)
 
     @components.button_listener()
     async def food(self, inter: disnake.MessageInteraction, item: str, uid: int) -> None:
@@ -518,7 +519,7 @@ class Fight(commands.Cog):
 
         return await getattr(inter.bot.fights[str(uid)], action)()
 
-    @commands.command(aliases=["fboss", "bossfight", "fightboss"])
+    @commands.slash_command()
     @utils.in_shop()
     @utils.in_battle()
     async def boss(self, inter):
@@ -583,7 +584,7 @@ class Fight(commands.Cog):
             await inter.send(inter.author.mention + "You have encountered an error, the developers has been notified.")
             await fight.end()
 
-    @commands.command(aliases=["f", "Battle", "monster"])
+    @commands.slash_command()
     @utils.in_shop()
     @utils.in_battle()
     async def fight(self, inter):
