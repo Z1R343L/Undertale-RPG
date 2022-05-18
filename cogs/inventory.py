@@ -41,9 +41,10 @@ class Shop(commands.Cog):
         data["inventory"].remove(item)
         heal = self.bot.items[item]["HP"]
         data["health"] += heal
+        lvl = data["level"]
 
-        if data["health"] >= data["max_health"]:
-            data["health"] = data["max_health"]
+        if data["health"] >= self.bot.levels[str(lvl)]["HP"]:
+            data["health"] = self.bot.levels[str(lvl)]["HP"]
             data = {
                 "health": data["max_health"],
                 "inventory": data["inventory"]
