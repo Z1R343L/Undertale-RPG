@@ -44,7 +44,7 @@ class DuelCog(commands.Cog):
         else:
             await inter.edit_original_message(content="You fleed", components=[])
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def duel(self, inter, p2: disnake.Member = None):
         p1 = inter.author

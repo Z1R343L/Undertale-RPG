@@ -1,16 +1,14 @@
 import disnake
 from disnake.ext import commands
 
-from utility.utils import get_all_funcs
-
 
 class HelpCommand(commands.Cog):
     def __init__(self, bot):
         """custom help command for the bot"""
         self.bot = bot
-        self.cmds = get_all_funcs(self)
+        
 
-    @commands.slash_command()
+    @commands.command()
     async def tutorial(self, inter):
         if not hasattr(inter, "prefix"):
             inter.prefix = "/"
@@ -40,14 +38,11 @@ class HelpCommand(commands.Cog):
         )
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     async def help(self, ctx, command: str = None):
-        if not hasattr(ctx, "prefix"):
-            ctx.prefix = "/"
-        else:
-            pass
         if command is not None:
-            command = self.bot.get_slash_commands(command)
+            command = self.bot.get_command(command)
+
         if command is not None:
             embed = disnake.Embed(
                 title=f"{command.name} Command",
@@ -56,6 +51,7 @@ class HelpCommand(commands.Cog):
             )
             await ctx.send(embed=embed)
             return
+
         emb = disnake.Embed(
             title="📜┃list of commands and modules of the bot",
             color=disnake.Colour.random(),
@@ -65,7 +61,6 @@ class HelpCommand(commands.Cog):
             "Event",
             "Developer_Tools",
             "Jishaku",
-            "Loops",
             "DiscordListsPost",
         ]
         for cog in self.bot.cogs:
@@ -73,7 +68,7 @@ class HelpCommand(commands.Cog):
             if cog.qualified_name in forbid:
                 continue
 
-            cmds = cog.get_slash_commands()
+            cmds = cog.get_commands()
             commands_per = "".join(f" `{command.name}` • " for command in cmds)
             emb.add_field(
                 name=cog.qualified_name, value=f"• {commands_per} \n\n", inline=False

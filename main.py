@@ -24,10 +24,6 @@ async def is_enabled(ctx):
         return False
     return True
 
-class RawCmds:
-    def __init__(self):
-        print("object intialised...")
-
 class UndertaleBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -54,7 +50,6 @@ class UndertaleBot(commands.AutoShardedBot):
         self.fights = {}
         self.shops = {}
         self.duels = {}
-        self.raw_cmds = RawCmds()
 
     async def on_shard_connect(self, shard):
         print(
@@ -68,9 +63,6 @@ class UndertaleBot(commands.AutoShardedBot):
                 self.load_extension(f"cogs.{filename[:-3]}")
                 print(f"🔁 {ConsoleColors.GREEN}{ConsoleColors.BOLD}cogs.{filename[:-3]} is loaded and ready.{ConsoleColors.ENDC}")
         self.ENABLED = True
-        for i in self.cogs:
-            for e in self.cogs[i].cmds:
-                setattr(self.raw_cmds, e.name, e)
         return
 
     def db_load(self):

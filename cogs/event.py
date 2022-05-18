@@ -6,7 +6,6 @@ import disnake
 from disnake.ext import commands, tasks
 
 from utility.dataIO import fileIO
-from utility.utils import get_all_funcs
 
 
 class Event(commands.Cog):
@@ -18,7 +17,7 @@ class Event(commands.Cog):
                         'u?booster', 'u?info', 'u?intro', 'u?daily', 'u?gold',
                         'u?stats', 'u?inventory', 'u?invite', 'u?supporter', 'u?vote',
                         'u?open', 'u?boss', 'u?fight']
-        self.cmds = get_all_funcs(self)
+        
 
     @tasks.loop(seconds=5)
     async def data_task(self):
@@ -78,24 +77,22 @@ class Event(commands.Cog):
             return await inter.send(embed=embed, ephemeral=True)
         raise error
 
-    @commands.Cog.listener()
+    # @commands.Cog.listener()
     async def on_message(self, message):
         if message.content in self.old_lst:
-            # embed = disnake.Embed(
-            #     title="We have migrated to slash command!",
-            #     description=("discord has enforced migration to slash command at 2021 summer, on **August 31st 2022**"
-            #                  " all bots should be migrated on time, or they will no longer work\n\n use our bot with"
-            #                  " the default prefix from now on, **/<command>**\n\n*look at the images below for "
-            #                  "demonstration*"
-            #                  ),
-            #    color=disnake.Color.red()
-            # )
-            # embed.set_image(
-            #     url="https://cdn.discordapp.com/attachments/827651835372240986/960505423373414400/IMG_0197.png"
-            # )
-            ctx = await self.bot.get_context(message)
-            ctx.prefix = "u?"
-            await getattr(self.bot.raw_cmds, message.content[2:])(ctx)
+            embed = disnake.Embed(
+               title="We have migrated to slash command!",
+                description=("discord has enforced migration to slash command at 2021 summer, on **August 31st 2022**"
+                             " all bots should be migrated on time, or they will no longer work\n\n use our bot with"
+                             " the default prefix from now on, **/<command>**\n\n*look at the images below for "
+                             "demonstration*"
+                             ),
+               color=disnake.Color.red()
+            )
+            embed.set_image(
+                url="https://cdn.discordapp.com/attachments/827651835372240986/960505423373414400/IMG_0197.png"
+            )
+            return await message.channel.send(embed=embed)
 
 
 def setup(bot):

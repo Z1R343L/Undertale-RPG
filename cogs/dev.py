@@ -1,15 +1,13 @@
 import disnake
 from disnake.ext import commands
 
-from utility.utils import get_all_funcs
-
 class Developer_Tools(commands.Cog):
     """A Module for the developer tools"""
 
 
     def __init__(self, bot):
         self.bot = bot
-        self.cmds = get_all_funcs(self)
+        
 
     @commands.command()
     @commands.is_owner()

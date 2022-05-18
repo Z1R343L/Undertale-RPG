@@ -2,16 +2,14 @@ import disnake
 import humanize
 from disnake.ext import commands
 
-from utility.utils import get_all_funcs
-
 class Leaderboard(commands.Cog):
     """Leaderboard and a developer tool for fixture"""
 
     def __init__(self, bot):
         self.bot = bot
-        self.cmds = get_all_funcs(self)
+        
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def leaderboard(self, inter, lb: str = "gold"):
         """see who's on the lead on gold amount"""

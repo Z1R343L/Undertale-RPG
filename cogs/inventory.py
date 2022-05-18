@@ -5,13 +5,13 @@ from disnake.ext import commands, components
 
 from disnake import ButtonStyle
 from disnake.ui import Button, ActionRow
-from utility.utils import occurrence, in_shop, in_battle, create_player_info, get_all_funcs
+from utility.utils import occurrence, in_shop, in_battle, create_player_info
 
 
 class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.cmds = get_all_funcs(self)
+        
 
     async def weapon(self, inter, item):
         data = await self.bot.players.find_one({"_id": inter.author.id})
@@ -61,7 +61,7 @@ class Shop(commands.Cog):
             f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
         )
 
-    @commands.slash_command()
+    @commands.command()
     @in_shop()
     @in_battle()
     async def use(self, inter, *, item: str = None):
@@ -138,7 +138,7 @@ class Shop(commands.Cog):
         await inter.edit_original_message(components=[])
         await getattr(Shop, self.bot.items[item]["func"])(self, inter, item)
 
-    @commands.slash_command()
+    @commands.command()
     @in_shop()
     @in_battle()
     async def open(self, inter):

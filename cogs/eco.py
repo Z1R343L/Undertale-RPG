@@ -4,7 +4,7 @@ import time
 import disnake
 from disnake.ext import commands
 
-from utility.utils import get_bar, in_battle, in_shop, create_player_info, get_all_funcs
+from utility.utils import get_bar, in_battle, in_shop, create_player_info
 
 from datetime import datetime
 
@@ -44,9 +44,9 @@ class Economy(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.cmds = get_all_funcs(self)
+        
 
-    @commands.slash_command()
+    @commands.command()
     @in_shop()
     @in_battle()
     async def reset(self, inter):
@@ -99,7 +99,7 @@ class Economy(commands.Cog):
         else:
             await inter.send("You should come back again!")
 
-    @commands.slash_command()
+    @commands.command()
     @in_shop()
     @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)
@@ -139,7 +139,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.slash_command()
+    @commands.command()
     @in_shop()
     @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)
@@ -173,7 +173,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 7, commands.BucketType.user)
     async def gold(self, inter):
         """Check your gold balance"""
@@ -193,7 +193,7 @@ class Economy(commands.Cog):
         await inter.response.defer()
         await Economy.stats(self, inter, member)
 
-    @commands.slash_command()
+    @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def stats(self, inter, member: disnake.User = None):
         """Check your stats and powers"""
@@ -272,7 +272,7 @@ class Economy(commands.Cog):
         embed.set_thumbnail(url=player.display_avatar)
         await inter.send(embed=embed)
 
-    @commands.slash_command()
+    @commands.command()
     async def inventory(self, inter):
         """Shows your inventory"""
         author = inter.author
@@ -303,7 +303,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.slash_command()
+    @commands.command()
     @in_shop()
     @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)

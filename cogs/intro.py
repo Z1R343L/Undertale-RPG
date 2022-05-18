@@ -1,8 +1,6 @@
 import disnake
 from disnake.ext import commands, components
 
-from utility.utils import get_all_funcs
-#
 intro = [
     [
         'Long ago, two races ruled over Earth: HUMANS and MONSTERS.',
@@ -115,9 +113,9 @@ class Intro(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.cmds = get_all_funcs(self)
+        
 
-    @commands.slash_command()
+    @commands.command()
     async def intro(self, inter) -> None:
         await inter.send(
             embed=intro_embs[0],
