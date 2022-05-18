@@ -50,25 +50,19 @@ class Battle:
     async def check_levelup(self):
         info = await self.bot.players.find_one({"_id": self.author.id})
         xp = info["exp"]
-        num = 100
         lvl = info["level"]
-        lvlexp = num * lvl
+        lvlexp = self.bot.levels[str(lvl)]["EXP_TO_LVLUP"]
         if xp >= lvlexp:
 
             new_level = info["level"] + 1
-            info["max_health"] = info["max_health"] + 4
-            new_dmg = info["damage"] + 1
-            new_health = info["max_health"] + 4
             new_xp = xp - lvlexp
 
             data = {
                 "level": new_level,
                 "exp": xp - lvlexp,
-                "max_health": new_health,
-                "damage": new_dmg
             }
             await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
-            if new_xp >= num * new_level:
+            if new_xp >= self.bot.levels[str(lvl + 1)]["EXP_TO_LVLUP"]:
                 return await self.check_levelup()
 
             embed = disnake.Embed(
@@ -145,32 +139,29 @@ class Battle:
         data = self.bot.monsters
         author = self.author
         info = await self.bot.players.find_one({"_id": self.author.id})
+        lvl = info["level"]
         user_wep = info["weapon"]
         monster = self.monster
-        damage = info["damage"]
+        damage = self.bot.levels[str(lvl)]["AT"]
         enemy_hp = self.monster_hp
 
-        min_dmg = self.bot.items[user_wep]["min_dmg"]
-        max_dmg = self.bot.items[user_wep]["max_dmg"]
-        enemy_min_gold = data[monster]["min_gold"]
-        enemy_max_gold = data[monster]["max_gold"]
-        enemy_xp_min = data[monster]["min_xp"]
-        enemy_xp_max = data[monster]["max_xp"]
+        DMG = self.bot.items[user_wep]["ATK"]
 
-        enemy_gold = random.randint(enemy_min_gold, enemy_max_gold)
-        enemy_xp = random.randint(enemy_xp_min, enemy_xp_max)
-        user_dmg = random.randint(min_dmg, max_dmg)
-
+        enemy_gold = self.bot.monsters[monster]["GOLD"]
+        enemy_xp = self.bot.monsters[monster]["XP"]
         atem = disnake.Embed(title="You Attack")
 
         # player attack
-        damage = int(user_dmg) + int(damage)
+        damage = int(DMG) + int(damage)
         enemy_hp_after = int(enemy_hp) - damage
         enemy_hp_after = max(enemy_hp_after, 0)
-        atem.description = f"You Damaged **{monster}**\n**-{user_dmg}HP**\ncurrent monster hp: **{enemy_hp_after}HP**"
+        atem.description = f"You Damaged **{monster}**\n**-{DMG}HP**\ncurrent monster hp: **{enemy_hp_after}HP**"
         atem.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
         )
+        if damage <= 0:
+            atem.description = f"You Missed!"
+
         await self.channel.send(self.author.mention, embed=atem)
         if enemy_hp_after <= 0:
             await asyncio.sleep(1)
@@ -254,15 +245,16 @@ class Battle:
         enemy_define = self.monster
         enemy_dmg = data[enemy_define]["atk"]
         user_ar = info["armor"].lower()
-        min_dfs = self.bot.items[user_ar]["min_dfs"]
-        max_dfs = self.bot.items[user_ar]["max_dfs"]
-        user_dfs = random.randint(min_dfs, max_dfs)
+        user_dfs = self.bot.items[user_ar]["DF"]
         user_hp = info["health"]
-        user_max_hp = info["max_health"]
+        lvl = info["level"]
+        health = "HP"
 
         enemy_dmg = enemy_dmg - int(user_dfs)
         if enemy_dmg <= 0:
-            enemy_dmg = 3
+            await self.channel.send("The monster has missed!")
+            await asyncio.sleep(3)
+            return await self.menu()
 
         atem = disnake.Embed(title=f"{enemy_define} Attacks")
 
@@ -270,7 +262,7 @@ class Battle:
         gold_lost = random.randint(10, 40) + info["level"]
         atem.description = (
             f"**{enemy_define}** Attacks\n**-{enemy_dmg}HP**\ncurrent hp: **{user_hp_after}HP\n"
-            f"{await utils.get_bar(user_hp_after, user_max_hp)}**"
+            f"{await utils.get_bar(user_hp_after, self.bot.levels[str(lvl)][health])}**"
         )
         atem.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/793382520665669662/803885802588733460/image0.png"
@@ -282,7 +274,7 @@ class Battle:
             info["gold"] = info["gold"] - gold_lost
             info["gold"] = max(info["gold"], 0)
             info["deaths"] = info["deaths"] + 1
-            info["health"] = 100
+            info["health"] = 20
             await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
 
             await asyncio.sleep(3)
@@ -334,15 +326,17 @@ class Battle:
     async def food(self, item):
         try:
             data = await self.bot.players.find_one({"_id": self.author.id})
+            lvl = data["level"]
             data["inventory"].remove(item)
             heal = self.bot.items[item]["HP"]
             data["health"] += heal
 
-            if data["health"] >= data["max_health"]:
-                data["health"] = data["max_health"]
+            if data["health"] >= self.bot.levels[str(lvl)]["HP"]:
+                data["health"] = self.bot.levels[str(lvl)]["HP"]
                 await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
                 await self.channel.send("Your health maxed out")
                 return await self.counter_attack()
+
             health = data["health"]
             await self.bot.players.update_one({"_id": self.author.id}, {"$set": data})
             await self.channel.send(
@@ -420,7 +414,7 @@ class Battle:
                 await self.channel.send(
                     "Get dunked on!!, if were really friends... **YOU WON'T COME BACK**"
                 )
-                info["health"] = 10
+                info["health"] = 24
                 info["rest_block"] = time.time()
                 await self.bot.players.update_one({"_id": self.author.id}, {"$set": info})
                 await self.end()
@@ -568,10 +562,7 @@ class Fight(commands.Cog):
 
         info = inter.bot.monsters
 
-        mon_hp_min = info[monster]["min_hp"]
-        mon_hp_max = info[monster]["max_hp"]
-
-        enemy_hp = random.randint(mon_hp_min, mon_hp_max)
+        enemy_hp = info[monster]["HP"]
 
         print(f"{inter.author} has entered a boss fight")
         fight = Battle(inter.author, inter.bot, monster, enemy_hp, inter, 1, inter.channel)
@@ -618,10 +609,7 @@ class Fight(commands.Cog):
 
         monster = random.choice(random_monster)
 
-        mon_hp_min = info[monster]["min_hp"]
-        mon_hp_max = info[monster]["max_hp"]
-
-        enemy_hp = random.randint(mon_hp_min, mon_hp_max)
+        enemy_hp = self.bot.monsters[monster]["atk"]
 
         print(f"{inter.author} has entered a fight")
         fight = Battle(inter.author, inter.bot, monster, enemy_hp, inter, 0, inter.channel)

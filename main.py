@@ -41,6 +41,7 @@ class UndertaleBot(commands.AutoShardedBot):
         self.MongoUrl = os.getenv("MONGO_URL")
         self.invite_url = "https://discord.gg/FQYVpuNz4Q"
         self.vote_url = "https://top.gg/bot/815153881217892372"
+        self.patreon_link = "https://www.patreon.com/undertale_rpg"
         self.currency = "<:doge_coin:864929485295321110>"
         self.add_check(is_enabled)
         self.activity = disnake.Game("Undertale | u?help ")

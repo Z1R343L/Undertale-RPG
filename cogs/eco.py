@@ -209,10 +209,9 @@ class Economy(commands.Cog):
         # stats
         level = info["level"]
         health = info["health"]
-        max_health = info["max_health"]
+        max_health = self.bot.levels[str(level)]["HP"]
 
         bar = await get_bar(health, max_health)
-        attack = info["damage"]
         armor = info["armor"]
         weapon = info["weapon"]
         deaths = info["deaths"]
@@ -255,10 +254,6 @@ class Economy(commands.Cog):
         embed.add_field(
             name="<:armor:916558817595097098>┃Armor",
             value=f"{armor}"
-        )
-        embed.add_field(
-            name="<:fist:916558332280598528>┃Attack",
-            value=f"{attack}"
         )
         embed.add_field(
             name="<:gold:924599104674332727>┃Gold",

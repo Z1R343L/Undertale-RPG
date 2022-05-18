@@ -56,13 +56,12 @@ async def create_player_info(ctx, mem):
             # statistics
             "level": 1,
             "resets": 0,
-            "health": 100,
-            "max_health": 100,
+            "health": 20,
 
             "multi_g": 1,
             "multi_xp": 1,
             "tokens": 0,
-            "damage": 0,
+            # "damage": 0,
 
             "exp": 0,
             "gold": 200,

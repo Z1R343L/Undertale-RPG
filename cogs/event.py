@@ -27,6 +27,7 @@ class Event(commands.Cog):
         self.bot.crates = fileIO("data/crates.json", "load")
         self.bot.shopping = fileIO("data/shops.json", "load")
         self.bot.boosters = await self.bot.db["boosters"].find_one({"_id": 0})
+        self.bot.levels = fileIO("data/levels.json", "load")
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
