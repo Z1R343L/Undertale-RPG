@@ -99,7 +99,7 @@ class Economy(commands.Cog):
         else:
             await inter.send("You should come back again!")
 
-    @commands.command()
+    @commands.command(aliases=["bt"])
     @in_shop()
     @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)
@@ -139,7 +139,7 @@ class Economy(commands.Cog):
 
         await inter.send(embed=em)
 
-    @commands.command()
+    @commands.command(aliases=["dl"])
     @in_shop()
     @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)
@@ -272,38 +272,7 @@ class Economy(commands.Cog):
         embed.set_thumbnail(url=player.display_avatar)
         await inter.send(embed=embed)
 
-    @commands.command()
-    async def inventory(self, inter):
-        """Shows your inventory"""
-        author = inter.author
-        await create_player_info(inter, inter.author)
-        info = await self.bot.players.find_one({"_id": author.id})
-
-        def countoccurrences(stored, value):
-            try:
-                stored[value] = stored[value] + 1
-            except KeyError:
-                stored[value] = 1
-                return
-
-        gold = info["gold"]
-
-        # func
-        store = {}
-        inventory = ""
-        for data in info["inventory"]:
-            countoccurrences(store, data)
-        for k, v in store.items():
-            inventory += f"{k} {v}x\n"
-
-        em = disnake.Embed(title="Your Inventory", color=disnake.Colour.random())
-        em.add_field(name="▫️┃Gold:", value=f"**{int(gold)}**", inline=False)
-        em.add_field(name="📦┃Items:", value=f"**{inventory}**", inline=False)
-        em.set_thumbnail(url=inter.author.display_avatar)
-
-        await inter.send(embed=em)
-
-    @commands.command()
+    @commands.command(aliases=["sp"])
     @in_shop()
     @in_battle()
     @commands.cooldown(1, 12, commands.BucketType.user)

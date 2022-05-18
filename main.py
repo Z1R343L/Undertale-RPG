@@ -53,8 +53,10 @@ class UndertaleBot(commands.AutoShardedBot):
 
     async def on_shard_connect(self, shard):
         print(
-            f"{ConsoleColors.GREEN} shard {ConsoleColors.BOLD}{ConsoleColors.CYAN}{shard} {ConsoleColors.ENDC}{ConsoleColors.GREEN}"
-            f"is connected.{ConsoleColors.ENDC}"
+            f"----------Shard {shard} is on.-------------\n"
+            f"Total Guilds: {len(self.guilds)}\n"
+            f"Total Shards: {len(self.shards)}\n"
+            f"------------------------------------------"
         )
 
     def load_all_cogs(self):

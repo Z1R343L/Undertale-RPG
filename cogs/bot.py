@@ -112,7 +112,7 @@ class Bot(commands.Cog):
         )
 
         e.add_field(
-            name="Join server", value="[Click Here](https://discord.gg/FQYVpuNz4Q)"
+            name="Join server", value=f"[Click Here]({self.bot.invite_url})"
         )
 
         e.set_thumbnail(url=self.bot.user.avatar.url)

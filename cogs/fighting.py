@@ -518,7 +518,7 @@ class Fight(commands.Cog):
 
         return await getattr(inter.bot.fights[str(uid)], action)()
 
-    @commands.command()
+    @commands.command(aliases=["fb"])
     @utils.in_shop()
     @utils.in_battle()
     async def boss(self, inter):
@@ -583,7 +583,7 @@ class Fight(commands.Cog):
             await inter.send(inter.author.mention + "You have encountered an error, the developers has been notified.")
             await fight.end()
 
-    @commands.command()
+    @commands.command(aliases=["f"])
     @utils.in_shop()
     @utils.in_battle()
     async def fight(self, inter):

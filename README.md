@@ -4,8 +4,8 @@
 ![Python](https://img.shields.io/badge/Python-3.8-blue?style=for-the-badge)
 ![License](https://img.shields.io/github/license/theblobscp/undertale-rpg?style=for-the-badge)
 
-| :bangbang: | This is cutrently both the slash command rewrite and the first release. |
-|:----------:|:-----------------------------------------------------------|
+| :bangbang: | The Bot is still on its unstable phase, contributions is accepted... |
+|:----------:|:---------------------------------------------------------------------|
 
 An Undertale RPG Discord bot to fight monsters, bosses, level up and duel with other players.
 

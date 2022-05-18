@@ -61,7 +61,31 @@ class Shop(commands.Cog):
             f"You consumed {item}, restored {heal}HP\n\nCurrent health: {health}HP"
         )
 
-    @commands.command()
+    @commands.command(aliases=["inv"])
+    async def inventory(self, inter):
+        """Shows your inventory"""
+        author = inter.author
+        await create_player_info(inter, inter.author)
+        info = await self.bot.players.find_one({"_id": author.id})
+
+        gold = info["gold"]
+
+        # func
+        store = {}
+        inventory = ""
+        for data in info["inventory"]:
+            occurrence(store, data)
+        for k, v in store.items():
+            inventory += f"{k} {v}x\n"
+
+        em = disnake.Embed(title="Your Inventory", color=disnake.Colour.random())
+        em.add_field(name="▫️┃Gold:", value=f"**{int(gold)}**", inline=False)
+        em.add_field(name="📦┃Items:", value=f"**{inventory}**", inline=False)
+        em.set_thumbnail(url=inter.author.display_avatar)
+
+        await inter.send(embed=em)
+
+    @commands.command(aliases=["equip", "heal"])
     @in_shop()
     @in_battle()
     async def use(self, inter, *, item: str = None):
