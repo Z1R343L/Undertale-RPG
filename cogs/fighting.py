@@ -609,7 +609,7 @@ class Fight(commands.Cog):
 
         monster = random.choice(random_monster)
 
-        enemy_hp = self.bot.monsters[monster]["atk"]
+        enemy_hp = self.bot.monsters[monster]["HP"]
 
         print(f"{inter.author} has entered a fight")
         fight = Battle(inter.author, inter.bot, monster, enemy_hp, inter, 0, inter.channel)
