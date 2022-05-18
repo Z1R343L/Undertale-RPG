@@ -10,8 +10,6 @@ class HelpCommand(commands.Cog):
 
     @commands.command()
     async def tutorial(self, inter):
-        if not hasattr(inter, "prefix"):
-            inter.prefix = "/"
         embed = disnake.Embed(title="Welcome to Undertale RPG!")
 
         text1 = "**This bot is an Undertale Themed RPG!, You can fight monsters from Undertale on discord!**"
