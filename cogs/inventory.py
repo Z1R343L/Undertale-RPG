@@ -46,7 +46,7 @@ class Shop(commands.Cog):
         if data["health"] >= self.bot.levels[str(lvl)]["HP"]:
             data["health"] = self.bot.levels[str(lvl)]["HP"]
             data = {
-                "health": data["max_health"],
+                "health": self.bot.levels[str(lvl)]["HP"],
                 "inventory": data["inventory"]
             }
             await self.bot.players.update_one({"_id": inter.author.id}, {"$set": data})
